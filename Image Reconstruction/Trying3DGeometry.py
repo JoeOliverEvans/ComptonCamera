@@ -2,44 +2,37 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as constants
 
-
 electron_mass = (constants.electron_mass * constants.c ** 2) / (constants.electron_volt * 10 ** 3)  # in keV
 
-def CalculateScatterAngle(InitialEnergy, AbsorptionEnergy):
+
+def CalculateScatterAngle(initial_energy, final_energy):
     """
-    :param InitialEnergy: Photon energy emitted by the source
-    :param AbsorptionEnergy: Photon energy at the final detector
+    :param final_energy:
+    :param initial_energy:
     :return: Compton Scattering Angle in degrees
     """
     return np.arccos(
-        1 - (electron_mass * ((InitialEnergy - AbsorptionEnergy) / (InitialEnergy * AbsorptionEnergy)))) * 180 / np.pi
+        1 - (electron_mass * ((initial_energy - final_energy) / (initial_energy * final_energy)))) * 180 / np.pi
 
 
 class DetectionPair:
-    def __init__(self, xScatter, yScatter, zScatter, xAbsorption, yAbsorption, zAdsorption, InitialEnergy,
-                 AbsorptionEnergy):
+    def __init__(self, scatter_position, absorption_position, initial_energy, absorption_energy):
         """
-        :param xScatter: Coordinates of scatter
-        :param yScatter:
-        :param zScatter:
-        :param xAbsorption: Coordinates of absorption
-        :param yAbsorption:
-        :param zAdsorption:
-        :param InitialEnergy:
-        :param AbsorptionEnergy:
+        :param scatter_position: Coordinates of scatter
+        :param absorption_position: Coordinates of absorption
+        :param initial_energy:
+        :param absorption_energy:
         """
-        self.ScatterPosition = [xScatter, yScatter, zScatter]
-        self.AbsorptionPosition = [xAbsorption, yAbsorption, zAdsorption]
-        self.LineVector = np.array(self.ScatterPosition) - np.array(self.AbsorptionPosition)
-        self.AbsorptionEnergy = AbsorptionEnergy
-        self.ScatterAngle = CalculateScatterAngle(InitialEnergy, AbsorptionEnergy)
+        self.scatterPosition = scatter_position
+        self.absorptionPosition = absorption_position
+        self.lineVector = np.array(self.scatterPosition) - np.array(self.absorptionPosition)
+        self.absorptionEnergy = absorption_energy
+        self.scatterAngle = CalculateScatterAngle(initial_energy, absorption_energy)
 
 
-firstpair = DetectionPair(1, 1, 1, 0, 0, 0, 500, 180)
-print(firstpair.ScatterAngle)
-print(firstpair.LineVector)
-
-
+firstpair = DetectionPair([1, 1, 1], [0, 0, 0], 500, 180)
+print(firstpair.scatterAngle)
+print(firstpair.lineVector)
 
 '''
 x, y, z = np.indices((8, 8, 8))
