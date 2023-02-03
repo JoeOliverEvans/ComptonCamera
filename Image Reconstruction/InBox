@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Feb  2 17:07:31 2023
+
+@author: nate
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+
+xdata= np.arange(0,10,1) #locations of a few particles
+ydata= np.arange(0,10,1)
+zdata= np.arange(0,10,1)
+ax = plt.axes(projection='3d') #setting up axes
+ax.scatter3D(xdata, ydata, zdata); #placing particles on 3d graphs
+
+def In_Box(xdata,ydata,zdata,x,y,z,side):
+    '''
+    Checks if the set of particles are in a square box centered on x,y,z with side 2*side
+    Parameters:
+    xdata: x coordinates of all points
+    ydata: y coordinates of all points
+    zdata: z coordinates of all points
+    x: center of box in x dimension
+    y: center of box in y dimension
+    z: center of box in z dimension
+    side: half the side of the box
+    Returns:
+    Box: False if there are no particles in the box, true if there is a particle in the box
+    '''
+    Box=False #start by assuming there are no particles in the box
+    for i in range(len(xdata)):
+        F_1 = np.abs(xdata[i] - x) < side #check if the x coordinate of the ith particle is in the box
+        F_2 = np.abs(ydata[i] - y) < side #same with y
+        F_3 = np.abs(zdata[i] - z) < side #same with x
+        if F_1 == F_2 == F_3 == True: #if the particle is in the box
+            Box=True #there's at least one particle in the box
+            break #don't need to keep going now there's at least one particle
+    return(Box)
+        
+    
+Box=In_Box(xdata,ydata,zdata,0,0,0,1) #arbitrary little check
+print(Box)
+
+#this bit of the code makes a cone
+
+fig = plt.figure() 
+ax = fig.add_subplot(111, projection='3d')
+
+theta1 = np.linspace(0, 2*np.pi, 100) #range of angles
+r1 = np.linspace(-5, 0, 100) #height of cone? (this isn't my code so not so sure)
+t1, R1 = np.meshgrid(theta1, r1) #makes a like... array of arrays of all the points in radius and angle
+
+X1 = R1*np.cos(t1) #array of arrays of x coordinates
+Y1 = R1*np.sin(t1) #array of arrays of y coordinates
+Z1 = -R1 #array of arrays of z coordinates
+
+ax.set_xlabel('x axis')
+ax.set_ylabel('y axis')
+ax.set_zlabel('z axis')
+
+ax.plot_surface(X1, Y1, Z1, alpha=0.8, color="blue")
+
+plt.show() #plot the cone
+
+X=X1.flatten() #make it a format takeable by box function
+Y=Y1.flatten()
+Z=Z1.flatten()
+
+Box=In_Box(X,Y,Z,5,0,0,1) #check if cone is in a box
+print(Box)
