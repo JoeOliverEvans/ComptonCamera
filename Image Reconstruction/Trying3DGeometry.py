@@ -10,10 +10,10 @@ def CalculateScatterAngle(initial_energy, final_energy):
     """
     :param final_energy:
     :param initial_energy:
-    :return: Compton Scattering Angle in degrees
+    :return: Compton Scattering Angle in radians
     """
     return np.arccos(
-        1 - (electron_mass * ((initial_energy - final_energy) / (initial_energy * final_energy)))) * 180 / np.pi
+        1 - (electron_mass * ((initial_energy - final_energy) / (initial_energy * final_energy))))
 
 
 class DetectionPair:
@@ -26,13 +26,13 @@ class DetectionPair:
         """
         self.scatterPosition = scatter_position
         self.absorptionPosition = absorption_position
-        self.lineVector = np.array(self.scatterPosition) - np.array(self.absorptionPosition)
+        self.lineVector = (np.array(self.scatterPosition) - np.array(self.absorptionPosition))/np.linalg.norm(np.array(self.scatterPosition) - np.array(self.absorptionPosition))
         self.absorptionEnergy = absorption_energy
         self.scatterAngle = CalculateScatterAngle(initial_energy, absorption_energy)
 
 
 pairs = []
-firstpair = DetectionPair([21, 25, 5], [21, 21, 0], 500, 400)
+firstpair = DetectionPair([26, 26, 5], [21, 21, 0], 500, 480)
 #secondpair = DetectionPair([71, 71, 1], [80, 80, 0], 500, 300)
 #thirdpair = DetectionPair([10, 71, 1], [10, 80, 0], 500, 200)
 pairs.append(firstpair)
@@ -48,17 +48,15 @@ print(voxels_per_side)
 voxel_cube = np.zeros((voxels_per_side, voxels_per_side, voxels_per_side), dtype=int)
 
 for pair in pairs:
-    for x in np.arange(0, imaging_area, voxel_length):
-        for y in np.arange(0, imaging_area, voxel_length):
+    for x in np.arange(-pair.scatterPosition[0], imaging_area-pair.scatterPosition[0], voxel_length):
+        for y in np.arange(-pair.scatterPosition[1], imaging_area-pair.scatterPosition[1], voxel_length):
             beta = np.arctan(pair.lineVector[0]/pair.lineVector[2])
             gamma = np.arctan(pair.lineVector[1]/pair.lineVector[2])
             #x_prime = np.cos(beta)*x + np.sin(beta)*np.sin(gamma)*y + np.sin(beta)*np.cos(gamma)*z
-            z = (- (np.cos(beta) * np.sin(gamma) * y) + np.sin(gamma) * x + pair.scatterPosition[2] + np.sqrt(
-                ((x - pair.scatterPosition[0]) ** 2 + (y - pair.scatterPosition[1]) ** 2)
-                * (np.tan(pair.scatterAngle)) ** 2))/(np.cos(beta)*np.cos(gamma))
-            z_argument = z // voxel_length
+            z = (np.sqrt(x**2 + y**2) / (np.tan(pair.scatterAngle))-np.sin(beta)*x+np.cos(beta)*np.sin(gamma)*y)
+            z_argument = (z // voxel_length) + pair.scatterPosition[2]
             if 0 <= z_argument < voxels_per_side:
-                voxel_cube[(x, y, int(z_argument))] = voxel_cube[(x, y, int(z_argument))] + 1
+                voxel_cube[(x + pair.scatterPosition[0], y + pair.scatterPosition[1], int(z_argument))] = voxel_cube[(x + pair.scatterPosition[0], y + pair.scatterPosition[1], int(z_argument))] + 1
 
 print(voxel_cube[21, 25, 5])
 '''for pair in pairs:
@@ -81,7 +79,7 @@ colors = np.empty(voxel_cube.shape, dtype=object)
 cones = np.where(voxel_cube < 1, voxel_cube, False)
 
 # and plot everything
-'''view_only_intersections = False
+view_only_intersections = False
 if view_only_intersections == True:
     intersections = voxel_cube > 1
     # intersections = np.where(voxel_cube > 1, voxel_cube, True)
@@ -101,7 +99,6 @@ else:
     ax.set_ylabel('y')
     ax.set_zlabel('z')
     ax.voxels(voxel_cube, facecolors=colors, edgecolor='k')
-
+    ax.plot([firstpair.scatterPosition[0], firstpair.scatterPosition[0]+40*firstpair.lineVector[0]],[firstpair.scatterPosition[1], firstpair.scatterPosition[1]+40*firstpair.lineVector[1]], [firstpair.scatterPosition[2], firstpair.scatterPosition[2]+40*firstpair.lineVector[2]])
     plt.show()
 
-'''
