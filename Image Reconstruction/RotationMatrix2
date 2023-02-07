@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Feb  7 17:10:49 2023
+
+@author: nate
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def Rotation_Matrix(x,y,z):
+    '''
+    Generates the rotation matrix to rotate the z axis to an axis from 0,0,0 to x,y,z
+    Parameters: x,y,z - coordinates of a point on the new axis going through 0,0,0
+    Returns: Matrix - The rotation matrix
+    '''
+    beta=np.arctan(x/z)
+    gamma=np.arctan(y/z)
+    Matrix=np.zeros((3,3))
+    Matrix[0,0]=np.cos(beta)*np.cos(gamma)
+    Matrix[0,1]=-np.sin(gamma)
+    Matrix[0,2]=np.sin(beta)*np.cos(gamma)
+    Matrix[1,0]=np.cos(beta)*np.sin(gamma)
+    Matrix[1,1]=-np.cos(gamma)
+    Matrix[1,2]=np.sin(beta)*np.sin(gamma)
+    Matrix[2,0]=-np.sin(beta)
+    Matrix[2,2]=np.cos(beta)
+    return(Matrix)
+
+Matrix=Rotation_Matrix(1,5,10) #generate an example rotation matrix
+print(Matrix)
+
+P=10 #number of points
+zdata= np.arange(0,P,1) #coordinates of some points along the z axis
+ydata=np.zeros(P)
+xdata=np.zeros(P)
+ax = plt.axes(projection='3d') #setting up axes
+ax.scatter3D(xdata, ydata, zdata); #placing particles on 3d graph
+
+xcoords=[] #empty lists to put new coordinates into
+ycoords=[]
+zcoords=[]
+
+
+for i in range(P):
+    x=xdata[i]
+    y=ydata[i]
+    z=zdata[i]
+    data=np.array([x,y,z])
+    xcoords.append(np.matmul(Matrix,data)[0]) #performs the rotation for each point
+    ycoords.append(np.matmul(Matrix,data)[1])
+    zcoords.append(np.matmul(Matrix,data)[2])
+    
+ax.scatter3D(xcoords, ycoords, zcoords); #placing rotated particles on 3d graph
