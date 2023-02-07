@@ -25,10 +25,10 @@ screen_pos = np.array([0, 50, 0])
 detector_pos = np.array([0, 100, 0])
 scatter_screen_dimensions = [5, 0.5, 5]
 detector_dimensions = [5, 0.5, 5]
-scr2_pos = np.array([30, 20, 0])
-scr2_dim = [0.5, 50, 50]
-det2_pos = np.array([40, 20, 0])
-det2_dim = [0.5, 50, 50]
+scr2_pos = np.array([50, 0, 0])
+scr2_dim = [0.5, 5, 5]
+det2_pos = np.array([100, 0, 0])
+det2_dim = [0.5, 5, 5]
 
 def kleinnishima(E):
     """Takes in a photon energy (in eV), and calculates the scattering angle 
@@ -117,6 +117,27 @@ for angle in angles:
         # Plot the photon path
         ax.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]])
         ax.plot([end[0], end2[0]], [end[1], end2[1]], [end[2], end2[2]])
+        
+def photon_path2(start, angle, end_x):
+    """
+    Describes photon path towards second screen/ detector based off of starting position and angle of direction
+    """
+    end = np.array([end_x, start[1] + np.cos(angle[0]), start[2] + np.cos(angle[1])])
+    return end
+
+for angle in angles:
+        # Photons travel to first screen
+        end = photon_path(start*screen_pos[0], angle, screen_pos[0])
+        
+        # Photons scatter obeying KN then travel to detectors y position
+        new_angle = np.array([kleinnishima(511000), kleinnishima(511000)])
+        end_x = det2_pos[0]
+        end2 = photon_path(end, new_angle, end_x)
+        
+        # Plot the photon path
+        ax.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]])
+        ax.plot([end[0], end2[0]], [end[1], end2[1]], [end[2], end2[2]])
+        
 
 # Plot the detector position
 detector_position = detector_pos
