@@ -30,7 +30,7 @@ class DetectionPair:
         self.absorptionEnergy = absorption_energy
         self.scatterAngle = CalculateScatterAngle(initial_energy, absorption_energy)
 
-
+"""create some pairs of detections"""
 pairs = []
 firstpair = DetectionPair([26, 26, 10], [21, 21, 0], 500, 420)
 secondpair = DetectionPair([71, 71, 1], [80, 80, 0], 500, 300)
@@ -41,13 +41,15 @@ pairs.append(thirdpair)
 print(firstpair.scatterAngle)
 print(firstpair.lineVector)
 
+
+"""setup the imaging area"""
 imaging_area = 100  # m
 voxel_length = 1 * 10 ** (0)  # m
 voxels_per_side = int(imaging_area / voxel_length)
 print(voxels_per_side)
 voxel_cube = np.zeros((voxels_per_side, voxels_per_side, voxels_per_side), dtype=int)
 
-
+"""populate the voxel cube with the detections of the cones"""
 for pair in pairs:
     for x in np.arange(-pair.scatterPosition[0], imaging_area-pair.scatterPosition[0], voxel_length):
         for y in np.arange(-pair.scatterPosition[1], imaging_area-pair.scatterPosition[1], voxel_length):
@@ -63,8 +65,6 @@ for pair in pairs:
             f = (((a*x)**2 + (b*y)**2 + 2 * a * x * b * y)/(g**2)) - x**2 - y**2
             z1 = (-e - np.sqrt(e**2 - 4 * d * f))/(2*d)
             z2 = (-e + np.sqrt(e**2 - 4 * d * f))/(2*d)
-            #z = (-np.sqrt(c**2 *(-2* a *x - 2* b *y)**2 - 4 *(a**2 *np.cos(t)**2 + b**2 *np.cos(t)**2 + c**2* np.cos(t)**2 - c**2)* (a**2* x**2* np.cos(t)**2 + a**2* y**2* np.cos(t)**2 - a**2* x**2 - 2* a *b *x *y + b**2 *x**2* np.cos(t)**2 + b**2 *y**2 *np.cos(t)**2 - b**2 *y**2 + c**2 *x**2 *np.cos(t)**2 + c**2 *y**2 *np.cos(t)**2)) - c* (-2* a *x - 2 *b *y))/(2* (a**2* np.cos(t)**2 + b**2 *np.cos(t)**2 + c**2* np.cos(t)**2 - c**2))
-            #z = (np.sqrt(x**2 + y**2) / (np.tan(pair.scatterAngle)))
             z_argument1 = (z1 // voxel_length) + pair.scatterPosition[2]
             z_argument2 = (z2 // voxel_length) + pair.scatterPosition[2]
             if 0 <= z_argument1 < voxels_per_side:
@@ -73,31 +73,14 @@ for pair in pairs:
                 voxel_cube[(x + pair.scatterPosition[0], y + pair.scatterPosition[1], int(z_argument2))] = voxel_cube[(x + pair.scatterPosition[0], y + pair.scatterPosition[1], int(z_argument2))] + 1
 
 
-print(voxel_cube[21, 25, 5])
-'''for pair in pairs:
-    x = np.arange(0, imaging_area, voxel_length)
-    y = np.arange(0, imaging_area, voxel_length)'''
-
-
-x, y, z = np.indices((8, 8, 8))
-
-# draw cuboids in the top left and bottom right corners, and a link between
-
-
-
-# combine the objects into a single boolean arrayanotheranoth
-
-print(np.max(voxel_cube))
-
 # set the colors of each object
 colors = np.empty(voxel_cube.shape, dtype=object)
 cones = np.where(voxel_cube < 1, voxel_cube, False)
 
 
-
 # and plot everything
 view_only_intersections = True
-if view_only_intersections == True:
+if view_only_intersections:
     intersections = voxel_cube > 1
     # intersections = np.where(voxel_cube > 1, voxel_cube, True)
     intersections = np.array(intersections, dtype=bool)
@@ -116,6 +99,5 @@ else:
     ax.set_ylabel('y')
     ax.set_zlabel('z')
     ax.voxels(voxel_cube, facecolors=colors, edgecolor='k')
-    ax.plot([firstpair.scatterPosition[0], firstpair.scatterPosition[0]+40*firstpair.lineVector[0]],[firstpair.scatterPosition[1], firstpair.scatterPosition[1]+40*firstpair.lineVector[1]], [firstpair.scatterPosition[2], firstpair.scatterPosition[2]+40*firstpair.lineVector[2]])
     plt.show()
 
