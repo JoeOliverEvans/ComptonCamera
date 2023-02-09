@@ -1,0 +1,64 @@
+def prob(polar, s):
+    N = 10000
+    
+    #Probability of an interaction in scatterer
+    #THESE PARAMETERS NEED TO CHANGE 
+    #mu_NaI = 0.073944 #for 662keV
+    #x = 3 #thickness cm
+        
+    #intprob = 1 - np.e**-(mu_NaI*x)
+    #p = np.random.uniform(0, 1, 10000)
+    #interaction = intprob[p < intprob]
+    
+    #Generate a sample of random probabilities
+    p2 = np.random.uniform(0, 1, N #this should be changed to len(intprob) when it worka)
+    
+    compton_scattered = s[p2 < s]
+    
+    print('compton ', compton_scattered)
+    
+         
+    E = 661e3
+    
+    #electron energy after scattering
+    E_e = E / (1 + (E / (constants.electron_mass * constants.c**2)) * (1 - np.cos(polar)))
+    
+    # Remaining energy after scattering
+    E_r = E - E_e
+    
+    #Probability of an interaction in detector
+    #intprob2 = 1 - np.e**-(mu_NaI*x)
+    #p3 = np.random.uniform(0, 1, 10000)
+    #interact2 = intprob2[p3 < intprob2]
+            
+    #calculating PE cross section           
+    
+    pe_xsect = 0.15*(E_r)**-3 #this is an approximation
+    
+    
+    #Determine which events pass the photoelectric selection criteria  
+    
+    p4 = np.random.uniform(0, 1, len(compton_scattered) #this should be changed to len(intprob2) when this works)
+    PE_absorb = pe_xsect[p4 < pe_xsect] 
+                            
+    return(compton_scattered, PE_absorb)
+ 
+
+#Example execution
+kn = KleinNishina(661e3, 10000)
+for i in range(10):
+    polar, azimuthal = kn.calc_scattering_angles()
+    s = kn.s
+    print(s, polar, azimuthal)
+       
+      
+plt.hist(angle[compton_scattered][PE_absorb], bins=100, label='Accepted events (Compton + photoelectric)')
+plt.hist(angle[compton_scattered][~PE_absorb], bins=100, label='Rejected events (photoelectric)', alpha=0.5)
+plt.hist(angle[~compton_scattered], bins=100, label='Rejected events (Compton)', alpha=0.5)
+plt.xlabel('Scattering angle (degrees)')
+plt.ylabel('Counts')
+plt.legend()
+plt.show()
+        
+        
+        
