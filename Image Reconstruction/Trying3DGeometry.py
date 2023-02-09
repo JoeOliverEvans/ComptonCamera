@@ -93,6 +93,8 @@ print(np.max(voxel_cube))
 colors = np.empty(voxel_cube.shape, dtype=object)
 cones = np.where(voxel_cube < 1, voxel_cube, False)
 
+
+
 # and plot everything
 view_only_intersections = True
 if view_only_intersections == True:
