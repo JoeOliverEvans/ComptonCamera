@@ -52,9 +52,9 @@ for i in range(10):
     print(s, polar, azimuthal)
        
       
-plt.hist(angle[compton_scattered][PE_absorb], bins=100, label='Accepted events (Compton + photoelectric)')
-plt.hist(angle[compton_scattered][~PE_absorb], bins=100, label='Rejected events (photoelectric)', alpha=0.5)
-plt.hist(angle[~compton_scattered], bins=100, label='Rejected events (Compton)', alpha=0.5)
+plt.hist(polar[compton_scattered][PE_absorb], bins=100, label='Accepted events (Compton + photoelectric)')
+plt.hist(polar[compton_scattered][~PE_absorb], bins=100, label='Rejected events (photoelectric)', alpha=0.5)
+plt.hist(polar[~compton_scattered], bins=100, label='Rejected events (Compton)', alpha=0.5)
 plt.xlabel('Scattering angle (degrees)')
 plt.ylabel('Counts')
 plt.legend()
