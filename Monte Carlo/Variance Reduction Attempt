@@ -11,7 +11,7 @@ def prob(polar, s):
     #interaction = intprob[p < intprob]
     
     #Generate a sample of random probabilities
-    p2 = np.random.uniform(0, 1, N #this should be changed to len(intprob) when it worka)
+    p2 = np.random.uniform(0, 1, N #this should be changed to len(intprob) when it works)
     
     compton_scattered = s[p2 < s]
     
