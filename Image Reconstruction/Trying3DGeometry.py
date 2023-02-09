@@ -32,12 +32,12 @@ class DetectionPair:
 
 
 pairs = []
-firstpair = DetectionPair([26, 26, 5], [21, 21, 0], 500, 480)
-#secondpair = DetectionPair([71, 71, 1], [80, 80, 0], 500, 300)
-#thirdpair = DetectionPair([10, 71, 1], [10, 80, 0], 500, 200)
+firstpair = DetectionPair([26, 26, 5], [21, 21, 0], 500, 490)
+secondpair = DetectionPair([71, 71, 1], [80, 80, 0], 500, 300)
+thirdpair = DetectionPair([10, 71, 1], [10, 80, 0], 500, 200)
 pairs.append(firstpair)
-#pairs.append(secondpair)
-#pairs.append(thirdpair)
+pairs.append(secondpair)
+pairs.append(thirdpair)
 print(firstpair.scatterAngle)
 print(firstpair.lineVector)
 
@@ -47,13 +47,22 @@ voxels_per_side = int(imaging_area / voxel_length)
 print(voxels_per_side)
 voxel_cube = np.zeros((voxels_per_side, voxels_per_side, voxels_per_side), dtype=int)
 
+
 for pair in pairs:
     for x in np.arange(-pair.scatterPosition[0], imaging_area-pair.scatterPosition[0], voxel_length):
         for y in np.arange(-pair.scatterPosition[1], imaging_area-pair.scatterPosition[1], voxel_length):
             beta = np.arctan(pair.lineVector[0]/pair.lineVector[2])
             gamma = np.arctan(pair.lineVector[1]/pair.lineVector[2])
-            #x_prime = np.cos(beta)*x + np.sin(beta)*np.sin(gamma)*y + np.sin(beta)*np.cos(gamma)*z
-            z = (np.sqrt(x**2 + y**2) / (np.tan(pair.scatterAngle))-np.sin(beta)*x+np.cos(beta)*np.sin(gamma)*y)
+            a = pair.lineVector[0]
+            b = pair.lineVector[1]
+            c = pair.lineVector[2]
+            ax = a * x
+            by = b * y
+            d = np.cos(pair.scatterAngle)**2 * (a**2 + b**2 + c**2) - c**2
+            e = -2 * c * (ax + by)
+            f = ax**2 + by**2 + 2 * ax * by - np.cos(pair.scatterAngle)**2 * (ax**2 + (a * y)**2 + (b * x)**2 + by**2 + (c * x)**2 + (c * y)**2)
+            z = (-e + np.sqrt(e**2 - 4 * d * f))/(2*d)
+            #z = (np.sqrt(x**2 + y**2) / (np.tan(pair.scatterAngle)))
             z_argument = (z // voxel_length) + pair.scatterPosition[2]
             if 0 <= z_argument < voxels_per_side:
                 voxel_cube[(x + pair.scatterPosition[0], y + pair.scatterPosition[1], int(z_argument))] = voxel_cube[(x + pair.scatterPosition[0], y + pair.scatterPosition[1], int(z_argument))] + 1
@@ -70,7 +79,7 @@ x, y, z = np.indices((8, 8, 8))
 
 
 
-# combine the objects into a single boolean array
+# combine the objects into a single boolean arrayanotheranoth
 
 print(np.max(voxel_cube))
 
