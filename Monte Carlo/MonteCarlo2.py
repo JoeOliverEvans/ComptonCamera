@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Feb  8 16:24:13 2023
-
 @author: david
 """
 import numpy as np
@@ -73,7 +72,11 @@ class KleinNishina:
         # unpolarised photons, we can jut assign a random number.
         azimuthal = np.random.rand() * 2 * np.pi   
         return(polar, azimuthal)
-    
+
+# Create an instance of the Klein-Nishina class - get a probability distribution
+# to get angles from.
+kn = KleinNishina(source_energy)
+
 #source position 
 #placed randomly in a 15*15*15 box around the origin
 source_pos = ([random.uniform(-15, 15), random.uniform(-15, 15), random.uniform(-15, 15)])
@@ -109,73 +112,66 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 
+# Create arrays for the positions of hits on the 1st set of detectors
+scat1_pos = np.zeros((n_photons, 3))
+absorb1_pos = np.zeros((n_photons, 3))
 
-
-
-
-
-#generating a random hit on scatterer 1 and plotting it
-scat1_pos = []
 for i in range(n_photons):
-    scat1_pos.append([-30, random.uniform(-15, 15), random.uniform(-15, 15)])
+    
+    #generating a random hit on scatterer 1 and plotting it
+    scat1_pos[i, :] = -30, random.uniform(-15, 15), random.uniform(-15, 15)
     x_scat1 = [source_pos[0], scat1_pos[i][0]]
     y_scat1 = [source_pos[1], scat1_pos[i][1]]
     z_scat1 = [source_pos[2], scat1_pos[i][2]] 
     ax.plot(x_scat1, y_scat1, z_scat1)   
-# Set of coordinates for the incident position on the scatterer 1
-print("Set of coordinates for the incident position on scatterer 1:")
-print(scat1_pos)
 
-#generating a scattered hit on absorber 1 and plotting it
-absorb1_pos = []
-for i in range(n_photons):
-    theta1 = KleinNishina(source_energy).calc_scattering_angles()[0] 
-    azimuth1 = KleinNishina(source_energy).calc_scattering_angles()[1]
-    absorb1_pos.append([-40, scat1_pos[i][1] + 10*np.cos(theta1), scat1_pos[i][2] + 10*np.cos(azimuth1)])
+    angles = kn.calc_scattering_angles()
+    theta1 = angles[0]
+    azimuth1 = angles[1]
+    absorb1_pos[i, :] = -40, scat1_pos[i][1] + 10*np.cos(theta1), scat1_pos[i][2] + 10*np.cos(azimuth1)
     x_absorb1 = [scat1_pos[i][0], absorb1_pos[i][0]]
     y_absorb1 = [scat1_pos[i][1], absorb1_pos[i][1]]
     z_absorb1 = [scat1_pos[i][2], absorb1_pos[i][2]]
     ax.plot(x_absorb1, y_absorb1, z_absorb1)    
+
+# Set of coordinates for the incident position on the scatterer 1
+print("Set of coordinates for the incident position on scatterer 1:")
+print(scat1_pos)
 # Set of coordinates for the incident position on the absorber 1
 print("Set of coordinates for the incident position on absorber 1:")
 print(absorb1_pos)
 
 
+# Create arrays for the positions of hits on the 2nd set of detectors
+scat2_pos = np.zeros((m_photons, 3))
+absorb2_pos = np.zeros((m_photons, 3))
 
-
-
-
-
-#generating a random hit on scatterer 2 and plotting it
-scat2_pos = []
 for i in range(m_photons):
-    scat2_pos.append([30, random.uniform(-15, 15), random.uniform(-15, 15)])
+
+    # Generating a random hit on scatterer 2 and plotting it
+    scat2_pos[i, :] = 30, random.uniform(-15, 15), random.uniform(-15, 15)
     x_scat2 = [source_pos[0], scat2_pos[i][0]]
     y_scat2 = [source_pos[1], scat2_pos[i][1]]
     z_scat2 = [source_pos[2], scat2_pos[i][2]] 
     ax.plot(x_scat2, y_scat2, z_scat2)
-# Set of coordinates for the incident position on the scatterer 2
-print("Set of coordinates for the incident position on scatterer 2:")
-print(scat2_pos)
 
-#generating a scattered hit on absorber 2 and plotting it
-absorb2_pos = []
-for i in range(m_photons):
-    theta2 = KleinNishina(source_energy).calc_scattering_angles()[0] 
-    azimuth2 = KleinNishina(source_energy).calc_scattering_angles()[1]
-    absorb2_pos.append([40, scat2_pos[i][1] + 10*np.cos(theta2), scat2_pos[i][2] + 10*np.cos(azimuth2)])
+    # Generating a scattered hit on absorber 2 and plotting it
+    angles = kn.calc_scattering_angles()
+    theta2 = angles[0]
+    azimuth2 = angles[1]
+    absorb2_pos[i, :] = 40, scat2_pos[i][1] + 10*np.cos(theta2), scat2_pos[i][2] + 10*np.cos(azimuth2)
     x_absorb2 = [scat2_pos[i][0], absorb2_pos[i][0]]
     y_absorb2 = [scat2_pos[i][1], absorb2_pos[i][1]]
     z_absorb2 = [scat2_pos[i][2], absorb2_pos[i][2]]
-    ax.plot(x_absorb2, y_absorb2, z_absorb2)    
+    ax.plot(x_absorb2, y_absorb2, z_absorb2)  
+
+# Set of coordinates for the incident position on the scatterer 2
+print("Set of coordinates for the incident position on scatterer 2:")
+print(scat2_pos)    
+
 # Set of coordinates for the incident position on the absorber 2
 print("Set of coordinates for the incident position on absorber 2:")
 print(absorb2_pos)
-
-
-
-
-
 
 
 #plotting source 
