@@ -1,0 +1,38 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+
+"""
+Go to the Excel file in Folders, right click and select properties(at the bottom)
+then copy everything after "Location: " and paste into file_path = ''. You will
+need to write the name for the file (Experimental Data 1, in my case) manually.
+You can't have the Excel file open whilst running this code otherwise it won't 
+work.
+
+NOTE: You will need to break up the data so they are not all on the A row. To
+do this, select the A row. Head to the "Data" tab at the top, and click "Text
+to Columns". Ensure "Delimited is ticked" and press next.
+Now click the "Semicolon" tickbox, and then click finish.
+"""
+
+num_bins = 500
+file_path = r'C:\Users\ARTCo\Downloads\TestData.xlsx'
+
+try:
+    df = pd.read_excel(file_path)
+except FileNotFoundError:
+    print(f"Error: The file '{file_path}' could not be found.")
+    df = None
+
+if df is not None:
+    print(df)
+
+energy = df["ENERGY"]
+
+# Add labels and title
+plt.xlabel('Energy Value')
+plt.ylabel('Counts')
+plt.title('XXX Spectrum')
+
+# Plot and show histogram
+plt.hist(energy, bins=500)
+plt.show()
