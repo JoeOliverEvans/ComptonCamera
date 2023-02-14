@@ -9,6 +9,9 @@ import sympy as smp
 from scipy import constants
 import random
 import pandas as pd
+import matplotlib
+
+matplotlib.use("TkAgg")
 
 # Define the parameters of the basic simulation
 source_energy = 662000 # eV
@@ -91,33 +94,34 @@ print(kn)
 
 #source position 
 #placed randomly in a 15*15*15 box around the origin
-source_pos = ([random.uniform(-15, 15), random.uniform(-15, 15), random.uniform(-15, 15)])
+#source_pos = ([random.uniform(-15, 15), random.uniform(-15, 15), random.uniform(-15, 15)])
+source_pos = (50, 50, 50)
 print("The source position is:")
 print(source_pos)
 
 #scattering detector 1 position:
-scatter_1_x = np.linspace(-15, 15, 100)
-scatter_1_y = np.linspace(-15, 15, 100)
+scatter_1_x = np.linspace(0, 100, 100)
+scatter_1_y = scatter_1_x
 scatter_1_x, scatter_1_y = np.meshgrid(scatter_1_x, scatter_1_y)
-scatter_1_z = -0*scatter_1_x - 30  #i.e. plane in xy at z = -30
+scatter_1_z = -0*scatter_1_x + 10  #i.e. plane in xy at z = -30
 
 #absorbing detector 1 position:
-absorber_1_x = np.linspace(-15, 15, 100)
-absorber_1_y = np.linspace(-15, 15, 100)
+absorber_1_x = scatter_1_x
+absorber_1_y = scatter_1_x
 absorber_1_x, absorber_1_y = np.meshgrid(absorber_1_x, absorber_1_y)
-absorber_1_z = -0*absorber_1_x - 40 #i.e. plane in xy at z = -40
+absorber_1_z = -0*absorber_1_x #i.e. plane in xy at z = -40
 
 #scattering detector 2 position:
-scatter_2_x = np.linspace(-15, 15, 100)
-scatter_2_y = np.linspace(-15, 15, 100)
+scatter_2_x = scatter_1_x
+scatter_2_y = scatter_1_x
 scatter_2_x, scatter_2_y = np.meshgrid(scatter_2_x, scatter_2_y)
-scatter_2_z = -0*scatter_2_x + 30 #i.e. plane in xy at z = 30
+scatter_2_z = -0*scatter_2_x + 90 #i.e. plane in xy at z = 30
 
 #absorbing detector 2 position:
-absorber_2_x = np.linspace(-15, 15, 100)
-absorber_2_y = np.linspace(-15, 15, 100)
+absorber_2_x = scatter_1_x
+absorber_2_y = scatter_1_x
 absorber_2_x, absorber_2_y = np.meshgrid(absorber_2_x, absorber_2_y)
-absorber_2_z = -0*absorber_2_x + 40 #i.e. plane in xy at z = 40
+absorber_2_z = -0*absorber_2_x + 100 #i.e. plane in xy at z = 40
 
 #plots: 
 fig = plt.figure()
@@ -131,7 +135,7 @@ absorb1_pos = np.zeros((n_photons, 3))
 for i in range(n_photons):
     
     #generating a random hit on scatterer 1 and plotting it
-    scat1_pos[i, :] = -30, random.uniform(-15, 15), random.uniform(-15, 15)
+    scat1_pos[i, :] = 10, random.uniform(0, 100), random.uniform(0, 100)
     x_scat1 = [source_pos[0], scat1_pos[i][0]]
     y_scat1 = [source_pos[1], scat1_pos[i][1]]
     z_scat1 = [source_pos[2], scat1_pos[i][2]] 
@@ -144,7 +148,7 @@ for i in range(n_photons):
     print(theta1)
     #print(azimuth1)
 
-    absorb1_pos[i, :] = -40, scat1_pos[i][1] + 10*np.cos(theta1), scat1_pos[i][2] + 10*np.cos(azimuth1)
+    absorb1_pos[i, :] = 0, scat1_pos[i][1] + 10*np.cos(theta1), scat1_pos[i][2] + 10*np.cos(azimuth1)
     x_absorb1 = [scat1_pos[i][0], absorb1_pos[i][0]]
     y_absorb1 = [scat1_pos[i][1], absorb1_pos[i][1]]
     z_absorb1 = [scat1_pos[i][2], absorb1_pos[i][2]]
@@ -165,7 +169,7 @@ absorb2_pos = np.zeros((m_photons, 3))
 for i in range(m_photons):
 
     # Generating a random hit on scatterer 2 and plotting it
-    scat2_pos[i, :] = 30, random.uniform(-15, 15), random.uniform(-15, 15)
+    scat2_pos[i, :] = 90, random.uniform(0, 100), random.uniform(0, 100)
     x_scat2 = [source_pos[0], scat2_pos[i][0]]
     y_scat2 = [source_pos[1], scat2_pos[i][1]]
     z_scat2 = [source_pos[2], scat2_pos[i][2]] 
@@ -175,7 +179,7 @@ for i in range(m_photons):
     angles = kn.calc_scattering_angles()
     theta2 = angles[0]
     azimuth2 = angles[1]
-    absorb2_pos[i, :] = 40, scat2_pos[i][1] + 10*np.cos(theta2), scat2_pos[i][2] + 10*np.cos(azimuth2)
+    absorb2_pos[i, :] = 100, scat2_pos[i][1] + 10*np.cos(theta2), scat2_pos[i][2] + 10*np.cos(azimuth2)
     x_absorb2 = [scat2_pos[i][0], absorb2_pos[i][0]]
     y_absorb2 = [scat2_pos[i][1], absorb2_pos[i][1]]
     z_absorb2 = [scat2_pos[i][2], absorb2_pos[i][2]]
