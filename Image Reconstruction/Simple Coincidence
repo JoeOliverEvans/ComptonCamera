@@ -14,6 +14,8 @@ data=pd.read_csv(r'/Users/nate/Downloads/SDataR_run.CSV', delimiter=';', header=
 
 tol=1*10**5
 coincidences_index=[]
+detector_pos_0='thing 0'
+detector_pos_1='thing 1'
 
 for i in range(len(data.iloc[:,2])-1):
     if np.abs(data.iloc[i,2]-data.iloc[i+1,2]) < tol:
@@ -26,14 +28,22 @@ Absorption location is absorption detector
 '''
 
 scatter_energies=[]
+scatter_locations=[]
 absorption_energies=[]
+absorption_locations=[]
 
 for i in range(len(coincidences_index)):
     if data.iloc[coincidences_index[i],1]==0:
         scatter_energies.append(data.iloc[coincidences_index[i],3])
+        scatter_locations.append(detector_pos_0)
+        #if data.iloc[coincidences_index[i],1]==1:, repeated as many times as you have detectors
         absorption_energies.append(data.iloc[coincidences_index[i]+1,3])
-    else:
+        absorption_locations.apppend(detector_pos_1)
+    else: #or repeat as many times as you have detectors
         scatter_energies.append(data.iloc[coincidences_index[i]+1,3])
+        scatter_locations.append(detector_pos_0)
+        #if data.iloc[coincidences_index[i],1]==1:, repeated as many times as you have detectors
         absorption_energies.append(data.iloc[coincidences_index[i],3])
+        absorption_locations.append(detector_pos_1)
         
 print(scatter_energies)
