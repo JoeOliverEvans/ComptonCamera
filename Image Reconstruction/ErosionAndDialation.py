@@ -36,3 +36,8 @@ for n, ax in enumerate(ax.flatten()):
     ax.imshow(new_circle, cmap = 'gray');
     ax.axis('off')
 fig.tight_layout()
+
+''' This link is really good at explaining erosion and dialation:
+    https://towardsdatascience.com/introduction-to-image-processing-with-python-dilation-and-erosion-for-beginners-d3a0f29ad72b
+    Looks like its used to isolate different parts of images
+    and getting rid of unwanted shapes'''
