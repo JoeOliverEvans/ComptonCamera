@@ -60,21 +60,23 @@ firstpair = DetectionPair([40, 50, 10], [40, 50, 0], 500, 420, 0.463647609)
 secondpair = DetectionPair([80, 50, 10], [80, 50, 0], 500, 300, 0.6435011088)
 thirdpair = DetectionPair([50, 10, 10], [50, 10, 0], 500, 400, np.pi / 4)
 pairs.append(firstpair)
-#pairs.append(secondpair)
-#pairs.append(thirdpair)
+pairs.append(secondpair)
+pairs.append(thirdpair)
 print(firstpair.scatterAngle)
 print(firstpair.lineVector)
 
 """setup the imaging area"""
 cubesize = 100
 imaging_area = np.array([cubesize, cubesize, cubesize])  # m
-voxel_length = 2 * 10 ** (0)  # m
+voxel_length = 1 * 10 ** (0)  # m
 voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
 
-voxel_cube = voxel_cube_cone = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
-points_per_voxel_side = 2
-checks_per_side = 2
+voxel_cube = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
 
+"""populate the voxel cube with the detections of the cones"""
+
+points_per_voxel_side = 2
+checks_per_side = 4
 for pair in pairs:
     x_values = np.tile(np.arange(0, imaging_area[0], voxel_length/checks_per_side) - pair.scatterPosition[0], (voxels_per_side[1]*checks_per_side, 1))
     y_values = np.tile(np.array([np.arange(0, imaging_area[1], voxel_length/checks_per_side) - pair.scatterPosition[1]]).transpose(),
@@ -83,6 +85,7 @@ for pair in pairs:
     z1, z2 = calculate_cone_z(pair, x_values, y_values)
     z1_arg = -1
     z2_arg = -1
+    voxel_cube_cone = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
     for (x, y), value in np.ndenumerate(z1):
         x = voxels_per_side[0] - (x+1)
         if 0 <= z1[y, x] < imaging_area[2]:
@@ -94,41 +97,9 @@ for pair in pairs:
                 voxel_cube_cone[x//checks_per_side, y//checks_per_side, z2_arg] = 1
     voxel_cube += voxel_cube_cone
 print(np.max(voxel_cube))
-'''
-"""populate the voxel cube with the detections of the cones"""
-for pair in pairs:
-    for x_index in np.arange(0, voxels_per_side[0], 1):
-        for y_index in np.arange(0, voxels_per_side[1], 1):
-            for z_index in np.arange(0, voxels_per_side[2], 1):
-                invoxel = False
-                for x_offset in np.linspace(0, voxel_length - voxel_length / points_per_voxel_side,
-                                            points_per_voxel_side):
-                    for y_offset in np.linspace(0, voxel_length - voxel_length / points_per_voxel_side,
-                                                points_per_voxel_side):
-                        x = x_index * voxel_length - pair.scatterPosition[0] + x_offset
-                        y = y_index * voxel_length - pair.scatterPosition[1] + y_offset
-                        z1, z2 = calculate_cone_z(pair, x, y)
-                        z_argument1 = (z1 + pair.scatterPosition[2]) // voxel_length
-                        z_argument2 = (z2 + pair.scatterPosition[2]) // voxel_length
-                        if z_index <= z_argument1 < z_index + voxel_length:  # incrementing the number of cones in voxel
-                            voxel_cube[x_index, y_index, z_index] = \
-                                voxel_cube[x_index, y_index, z_index] + 1
-                            invoxel = True
-                        if z_index <= z_argument2 < z_index + voxel_length and z_argument1 != z_argument2:
-                            voxel_cube[x_index, y_index, z_index] = \
-                                voxel_cube[x_index, y_index, z_index] + 1
-                            invoxel = True
-                        if invoxel:
-                            break
-                    if invoxel:
-                        break'''
 
-print(np.max(voxel_cube))
-# (np.shape(voxel_cube))
 print(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape))
 
-'''source_position = np.argmax(voxel_cube) * voxel_length
-print(source_position)'''
 
 # set the colors of each object
 colors = np.empty(voxel_cube.shape, dtype=object)
