@@ -146,7 +146,7 @@ ax.plot_surface(absorber_1_z, absorber_1_y, absorber_1_x)
 plt.show()
 
 
-# the file has columns: | scattering x pos | scattering y pos | scattering z pos | absorbing x pos | absorbing y pos | absorbing z pos | scattering angle |
+# the file has columns: | scattering x pos |  scattering y pos | scattering z pos | absorbing x pos | absorbing y pos | absorbing z pos | scattering angle |
 data = np.hstack((scat1_pos,absorb1_pos))
 df = pd.DataFrame(data)
 df.to_excel(excel_writer = r"copy filepath to excel file here .xls")
