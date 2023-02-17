@@ -91,13 +91,13 @@ print(source_pos)
 scatter_1_x = np.linspace(10, 20, 100)
 scatter_1_y = np.linspace(10, 20, 100)
 scatter_1_x, scatter_1_y = np.meshgrid(scatter_1_x, scatter_1_y)
-scatter_1_z = 0*scatter_1_x + 30  #i.e. plane in xy at z = -30
+scatter_1_z = 0*scatter_1_x + 30  
 
 #absorbing detector 1 position:
 absorber_1_x = np.linspace(10, 20, 100)
 absorber_1_y = np.linspace(10, 20, 100)
 absorber_1_x, absorber_1_y = np.meshgrid(absorber_1_x, absorber_1_y)
-absorber_1_z = 0*absorber_1_x + 40 #i.e. plane in xy at z = -40
+absorber_1_z = 0*absorber_1_x + 40 
 
 
 #plots: 
