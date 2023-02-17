@@ -1,9 +1,12 @@
+import multiprocessing
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as constants
 import matplotlib
 import time
 import datetime
+from multiprocessing import Pool
 
 matplotlib.use("TkAgg")
 
@@ -41,7 +44,7 @@ def calculate_cone_z(pair_of_detections, x, y):
     :param pair_of_detections: the pair of detections that produce the cone
     :param x:
     :param y:
-    :return: z1 and z2 which contain the z value, there are two as one of them will error
+    :return: z1 and z2 which contain the z value, there are two as it is the solution to a quadratic
     """
     a = pair_of_detections.lineVector[0]
     b = pair_of_detections.lineVector[1]
@@ -56,80 +59,6 @@ def calculate_cone_z(pair_of_detections, x, y):
     return z1, z2
 
 
-"""create some pairs of detections"""
-pairs = []
-firstpair = DetectionPair([40, 50, 10], [40, 50, 0], 500, 420, 0.463647609)
-secondpair = DetectionPair([80, 50, 10], [80, 50, 0], 500, 300, 0.6435011088)
-thirdpair = DetectionPair([50, 10, 10], [50, 10, 0], 500, 400, np.pi / 4)
-for x in range(0, 100):
-    pairs.append(firstpair)
-    pairs.append(secondpair)
-    pairs.append(thirdpair)
-print(firstpair.scatterAngle)
-print(firstpair.lineVector)
-
-"""setup the imaging area"""
-cubesize = 100
-imaging_area = np.array([cubesize, cubesize, cubesize])  # m
-voxel_length = 2 * 10 ** (0)  # m
-voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
-
-voxel_cube = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
-
-"""populate the voxel cube with the detections of the cones"""
-
-points_per_voxel_side = 2
-checks_per_side = 4
-counter = 0
-t_0 = time.time()
-first = True
-for n, pair in enumerate(pairs):
-    if (time.time() - t_0) > 5:
-        if first:
-            first = False
-            time_to_completion = round((time.time() - t_0) * len(pairs) / n)
-            print('Estimated time to completion : ' + str(datetime.timedelta(seconds=time_to_completion)))
-        print(str(n) + ' / ' + str(len(pairs)))
-        t_0 = time.time()
-    x_values = np.tile(np.arange(0, imaging_area[0], voxel_length / checks_per_side) - pair.scatterPosition[0],
-                       (voxels_per_side[1] * checks_per_side, 1))
-    y_values = np.tile(
-        np.array([np.arange(0, imaging_area[1], voxel_length / checks_per_side) - pair.scatterPosition[1]]).transpose(),
-        (1, voxels_per_side[0] * checks_per_side))
-
-    z1, z2 = calculate_cone_z(pair, x_values, y_values)
-    z1_arg = -1
-    z2_arg = -1
-    voxel_cube_cone = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
-    for (x1, y1) in np.argwhere((0 <= z1) & (z1 < imaging_area[2])):
-        counter += 1
-        voxel_cube_cone[x1 // checks_per_side, y1 // checks_per_side, int(z1[x1, y1] // voxel_length)] = 1
-    for (x2, y2) in np.argwhere((0 <= z2) & (z2 < imaging_area[2])):
-        counter += 1
-        voxel_cube_cone[x2 // checks_per_side, y2 // checks_per_side, int(z2[x2, y2] // voxel_length)] = 1
-    '''
-    for (x, y), value in np.ndenumerate(z1):
-        counter+=1
-        x = voxels_per_side[0] - (x+1)
-        if 0 <= z1[y, x] < imaging_area[2]:
-            z1_arg = int(z1[y, x] // voxel_length)
-            voxel_cube_cone[x//checks_per_side, y//checks_per_side, z1_arg] = 1
-        if 0 <= z2[y, x] < imaging_area[2]:
-            z2_arg = int(z2[y, x] // voxel_length)
-            if z1_arg != z2_arg:
-                voxel_cube_cone[x//checks_per_side, y//checks_per_side, z2_arg] = 1'''
-    voxel_cube += voxel_cube_cone
-print(counter)
-print(np.max(voxel_cube))
-
-print(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape))
-
-# set the colors of each object
-colors = np.empty(voxel_cube.shape, dtype=object)
-cones = np.where(voxel_cube < 1, voxel_cube, False)
-
-
-# and plot everything
 def plot_3d(view_only_intersections=False):
     """
     Function to view a 3D plot of cones, can toggle to see only intersections
@@ -158,4 +87,102 @@ def plot_3d(view_only_intersections=False):
         plt.show()
 
 
-#plot_3d()
+def calculate_voxel_cone_cube(arg):
+    imaging_area, voxel_length, voxels_per_side, checks_per_side, pair_of_detections = arg[0], arg[1], arg[2], arg[3], arg[4]
+    x_values = np.tile(np.arange(0, imaging_area[0], voxel_length / checks_per_side) - pair_of_detections.scatterPosition[0],
+                       (voxels_per_side[1] * checks_per_side, 1))
+    y_values = np.tile(
+        np.array(
+            [np.arange(0, imaging_area[1], voxel_length / checks_per_side) - pair_of_detections.scatterPosition[1]]).transpose(),
+        (1, voxels_per_side[0] * checks_per_side))
+    z1, z2 = calculate_cone_z(pair_of_detections, x_values, y_values)
+    voxel_cube_cone = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
+    for (x1, y1) in np.argwhere((0 <= z1) & (z1 < imaging_area[2])):
+        voxel_cube_cone[y1 // checks_per_side, x1 // checks_per_side, int(z1[x1, y1] // voxel_length)] = 1
+    for (x2, y2) in np.argwhere((0 <= z2) & (z2 < imaging_area[2])):
+        voxel_cube_cone[y2 // checks_per_side, x2 // checks_per_side, int(z2[x2, y2] // voxel_length)] = 1
+    return voxel_cube_cone
+
+
+if __name__ == '__main__':
+    """create some pairs of detections"""
+    pairs = []
+    firstpair = DetectionPair([40, 50, 10], [40, 50, 0], 500, 420, 0.463647609)
+    secondpair = DetectionPair([80, 50, 10], [80, 50, 0], 500, 300, 0.6435011088)
+    thirdpair = DetectionPair([50, 10, 10], [50, 10, 0], 500, 400, np.pi / 4)
+    for n in range(0, 1):
+        pairs.append(firstpair)
+        pairs.append(secondpair)
+        pairs.append(thirdpair)
+    print(firstpair.scatterAngle)
+    print(firstpair.lineVector)
+
+    """setup the imaging area"""
+    cubesize = 100
+    imaging_area = np.array([cubesize, cubesize, cubesize])  # m
+    voxel_length = 2 * 10 ** (0)  # m
+    voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
+
+    voxel_cube = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
+
+    points_per_voxel_side = 2
+    checks_per_side = 4
+    counter = 0
+    t_0 = time.time()
+    first = True
+    cone_list = []
+    args = [(imaging_area, voxel_length, voxels_per_side, checks_per_side, pairs[i]) for i in range(len(pairs))]
+    with Pool(multiprocessing.cpu_count()) as p:
+        cone_list = p.map(calculate_voxel_cone_cube, args)
+    '''
+    for n, pair in enumerate(pairs):
+        # print(calculate_voxel_cone_cube(pair))
+        cone_list.append(calculate_voxel_cone_cube(pair))
+        if (time.time() - t_0) > 5:
+            if first:
+                first = False
+                time_to_completion = round((time.time() - t_0) * len(pairs) / n)
+                print('Estimated time to completion : ' + str(datetime.timedelta(seconds=time_to_completion)))
+            print(str(n) + ' / ' + str(len(pairs)))
+            t_0 = time.time()'''
+    '''     x_values = np.tile(np.arange(0, imaging_area[0], voxel_length / checks_per_side) - pair.scatterPosition[0],
+                           (voxels_per_side[1] * checks_per_side, 1))
+        y_values = np.tile(
+            np.array(
+                [np.arange(0, imaging_area[1], voxel_length / checks_per_side) - pair.scatterPosition[1]]).transpose(),
+            (1, voxels_per_side[0] * checks_per_side))
+
+        z1, z2 = calculate_cone_z(pair, x_values, y_values)
+        z1_arg = -1
+        z2_arg = -1
+        voxel_cube_cone = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
+        for (x1, y1) in np.argwhere((0 <= z1) & (z1 < imaging_area[2])):
+            counter += 1
+            voxel_cube_cone[x1 // checks_per_side, y1 // checks_per_side, int(z1[x1, y1] // voxel_length)] = 1
+        for (x2, y2) in np.argwhere((0 <= z2) & (z2 < imaging_area[2])):
+            counter += 1
+            voxel_cube_cone[x2 // checks_per_side, y2 // checks_per_side, int(z2[x2, y2] // voxel_length)] = 1'''
+    '''
+        for (x, y), value in np.ndenumerate(z1):
+            counter+=1
+            x = voxels_per_side[0] - (x+1)
+            if 0 <= z1[y, x] < imaging_area[2]:
+                z1_arg = int(z1[y, x] // voxel_length)
+                voxel_cube_cone[x//checks_per_side, y//checks_per_side, z1_arg] = 1
+            if 0 <= z2[y, x] < imaging_area[2]:
+                z2_arg = int(z2[y, x] // voxel_length)
+                if z1_arg != z2_arg:
+                    voxel_cube_cone[x//checks_per_side, y//checks_per_side, z2_arg] = 1'''
+    voxel_cube = np.sum(cone_list, axis=0)
+    print(counter)
+    print(np.max(voxel_cube))
+
+    print(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape))
+
+    # set the colors of each object
+    colors = np.empty(voxel_cube.shape, dtype=object)
+    cones = np.where(voxel_cube < 1, voxel_cube, False)
+
+    # and plot everything
+
+    plot_3d()
