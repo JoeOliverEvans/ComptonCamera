@@ -2,12 +2,13 @@ import multiprocessing
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as constants
-import matplotlib
+import matplotlib; matplotlib.use("TkAgg")
 from multiprocessing import Pool
 from tqdm import tqdm
 import pandas as pd
 from mayavi import mlab
 import warnings
+
 
 warnings.filterwarnings("ignore", message="invalid value encountered")
 
@@ -67,16 +68,21 @@ def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
     :param view_only_intersections: True or False
     :return:
     """
-    matplotlib.use("TkAgg")
+    # set the colors of each object
+    colors = np.empty(voxel_cube.shape, dtype=object)
+    cones = np.where(voxel_cube < 1, voxel_cube, False)
+
     if view_only_intersections:
-        intersections = voxel_cube >= min_number_of_intersections
+        intersections = voxel_cube >= np.max(voxel_cube)-1
         # intersections = np.where(voxel_cube > 1, voxel_cube, True)
         intersections = np.array(intersections, dtype=bool)
         colors[intersections] = 'green'
 
         ax = plt.figure().add_subplot(projection='3d')
         ax.voxels(intersections, facecolors=colors, edgecolor='k')
-
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
         plt.show()
     else:
         colors[voxel_cube == 1] = 'blue'
@@ -101,7 +107,7 @@ def mayavi_plot_3d(voxel_cube, view_only_intersections=True, min_intersections=-
 
 def calculate_voxel_cone_cube(arg):
     imaging_area, voxel_length, voxels_per_side, checks_per_side, pair_of_detections = arg[0], arg[1], arg[2], arg[3], arg[4]
-    x_values = np.tile(np.arange(0, imaging_area[0], voxel_length / checks_per_side) - pair_of_detections.scatterPosition[0],
+    x_values = np.tile(np.arange(imaging_area[0]-voxel_length / checks_per_side, 0-voxel_length / checks_per_side, -voxel_length / checks_per_side) - pair_of_detections.scatterPosition[0],
                        (voxels_per_side[1] * checks_per_side, 1))
     y_values = np.tile(
         np.array(
@@ -125,16 +131,17 @@ if __name__ == '__main__':
         pairs.append(DetectionPair([row[1], row[2], row[3]], [row[4], row[5], row[6]], 500, 420, row[7]))
 
     """setup the imaging area"""
-    cubesize = 100
+    cubesize = 40
     imaging_area = np.array([cubesize, cubesize, cubesize])  # m
-    voxel_length = 1 * 10 ** (0)  # m
+    voxel_length = 0.1 * 10 ** (0)  # m
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
-
+    voxel_cube = np.zeros(voxels_per_side, dtype=int)
     points_per_voxel_side = 2
-    checks_per_side = 4
+    checks_per_side = 2
     args = [(imaging_area, voxel_length, voxels_per_side, checks_per_side, pairs[i]) for i in range(len(pairs))]
     with Pool(multiprocessing.cpu_count()) as p:
-        cone_list = list(tqdm(p.imap_unordered(calculate_voxel_cone_cube, iterable=args), total=len(pairs)))
+        for x in tqdm(p.imap_unordered(calculate_voxel_cone_cube, iterable=args), total=len(pairs)):
+            voxel_cube += x
         '''        while cone_list._number_left > 0:
             number_of_tasks_complete = len(pairs) - cone_list._number_left * cone_list._chunksize
             pbar.update(number_of_tasks_complete)
@@ -178,16 +185,13 @@ if __name__ == '__main__':
                 z2_arg = int(z2[y, x] // voxel_length)
                 if z1_arg != z2_arg:
                     voxel_cube_cone[x//checks_per_side, y//checks_per_side, z2_arg] = 1'''
-    voxel_cube = np.sum(cone_list, axis=0)
+    #voxel_cube = np.sum(cone_list, axis=0)
+    cone_list = 0
     print(np.max(voxel_cube))
 
-    print(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape))
-
-    # set the colors of each object
-    colors = np.empty(voxel_cube.shape, dtype=object)
-    cones = np.where(voxel_cube < 1, voxel_cube, False)
+    print(np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape), dtype=np.float64)*voxel_length)
 
     # and plot everything
 
     #plot_3d(view_only_intersections=True)
-    mayavi_plot_3d(voxel_cube, view_only_intersections=True)
+    #mayavi_plot_3d(voxel_cube, view_only_intersections=True)
