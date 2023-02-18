@@ -3,13 +3,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as constants
 import matplotlib
-import time
-import datetime
 from multiprocessing import Pool
 from tqdm import tqdm
+import pandas as pd
+from mayavi import mlab
+import warnings
+
+warnings.filterwarnings("ignore", message="invalid value encountered")
 
 electron_mass = (constants.electron_mass * constants.c ** 2) / (constants.electron_volt * 10 ** 3)  # in keV
-
 
 def CalculateScatterAngle(initial_energy, final_energy):
     """
@@ -52,20 +54,22 @@ def calculate_cone_z(pair_of_detections, x, y):
     d = (c ** 2 / g ** 2) - 1
     e = (2 * a * x * c + b * y * c) / (g ** 2)
     f = (((a * x) ** 2 + (b * y) ** 2 + 2 * a * x * b * y) / (g ** 2)) - x ** 2 - y ** 2
-    z1 = ((-e - np.sqrt(e ** 2 - 4 * d * f)) / (2 * d)) + pair_of_detections.scatterPosition[2]
-    z2 = ((-e + np.sqrt(e ** 2 - 4 * d * f)) / (2 * d)) + pair_of_detections.scatterPosition[2]
+    h = e ** 2 - 4 * d * f
+    z1 = ((-e - np.sqrt(h)) / (2 * d)) + pair_of_detections.scatterPosition[2]
+    z2 = ((-e + np.sqrt(h)) / (2 * d)) + pair_of_detections.scatterPosition[2]
     return z1, z2
 
 
-def plot_3d(view_only_intersections=False):
+def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
     """
     Function to view a 3D plot of cones, can toggle to see only intersections
+    :param min_number_of_intersections:
     :param view_only_intersections: True or False
     :return:
     """
     matplotlib.use("TkAgg")
     if view_only_intersections:
-        intersections = voxel_cube > 1
+        intersections = voxel_cube >= min_number_of_intersections
         # intersections = np.where(voxel_cube > 1, voxel_cube, True)
         intersections = np.array(intersections, dtype=bool)
         colors[intersections] = 'green'
@@ -84,6 +88,13 @@ def plot_3d(view_only_intersections=False):
         ax.set_zlabel('z')
         ax.voxels(voxel_cube, facecolors=colors, edgecolor='k')
         plt.show()
+
+
+def mayavi_plot_3d(voxel_cube, view_only_intersections=True, min_intersections=2):
+    voxel_cube = np.where(voxel_cube >= min_intersections, voxel_cube, 0)
+    mlab.points3d(voxel_cube, mode='cube', color=(0, 1, 0), scale_factor=1)
+    mlab.axes()
+    mlab.show()
 
 
 def calculate_voxel_cone_cube(arg):
@@ -106,15 +117,10 @@ def calculate_voxel_cone_cube(arg):
 if __name__ == '__main__':
     """create some pairs of detections"""
     pairs = []
-    firstpair = DetectionPair([40, 50, 10], [40, 50, 0], 500, 420, 0.463647609)
-    secondpair = DetectionPair([80, 50, 10], [80, 50, 0], 500, 300, 0.6435011088)
-    thirdpair = DetectionPair([50, 10, 10], [50, 10, 0], 500, 400, np.pi / 4)
-    for n in range(0, 100):
-        pairs.append(firstpair)
-        pairs.append(secondpair)
-        pairs.append(thirdpair)
-    print(firstpair.scatterAngle)
-    print(firstpair.lineVector)
+    df = pd.read_csv(r'C:\Users\joeol\Documents\Computing year 2\ComptonCamera\Monte Carlo\copy filepath to excel file here .xls')
+    for x in df.index:
+        row = df.iloc[[x]].to_numpy()[0]
+        pairs.append(DetectionPair([row[1], row[2], row[3]], [row[4], row[5], row[6]], 500, 420, row[7]))
 
     """setup the imaging area"""
     cubesize = 100
@@ -122,12 +128,9 @@ if __name__ == '__main__':
     voxel_length = 1 * 10 ** (0)  # m
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
 
-    #voxel_cube = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
-
     points_per_voxel_side = 2
     checks_per_side = 4
     args = [(imaging_area, voxel_length, voxels_per_side, checks_per_side, pairs[i]) for i in range(len(pairs))]
-    print('start')
     with Pool(multiprocessing.cpu_count()) as p:
         cone_list = list(tqdm(p.imap_unordered(calculate_voxel_cone_cube, iterable=args), total=len(pairs)))
         '''        while cone_list._number_left > 0:
@@ -184,4 +187,5 @@ if __name__ == '__main__':
 
     # and plot everything
 
-    #plot_3d()
+    #plot_3d(view_only_intersections=True)
+    mayavi_plot_3d(voxel_cube, view_only_intersections=True, min_intersections=np.max(voxel_cube))
