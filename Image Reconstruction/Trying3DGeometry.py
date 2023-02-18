@@ -90,9 +90,11 @@ def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
         plt.show()
 
 
-def mayavi_plot_3d(voxel_cube, view_only_intersections=True, min_intersections=2):
+def mayavi_plot_3d(voxel_cube, view_only_intersections=True, min_intersections=-1):
+    if min_intersections == -1:
+        min_intersections = np.max(voxel_cube)-1
     voxel_cube = np.where(voxel_cube >= min_intersections, voxel_cube, 0)
-    mlab.points3d(voxel_cube, mode='cube', color=(0, 1, 0), scale_factor=1)
+    mlab.points3d(voxel_cube, mode='cube', color=(0, 1, 0), scale_factor=0.1)
     mlab.axes()
     mlab.show()
 
@@ -188,4 +190,4 @@ if __name__ == '__main__':
     # and plot everything
 
     #plot_3d(view_only_intersections=True)
-    mayavi_plot_3d(voxel_cube, view_only_intersections=True, min_intersections=np.max(voxel_cube))
+    mayavi_plot_3d(voxel_cube, view_only_intersections=True)
