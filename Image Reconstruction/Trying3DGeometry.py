@@ -1,5 +1,4 @@
 import multiprocessing
-
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as constants
@@ -7,8 +6,7 @@ import matplotlib
 import time
 import datetime
 from multiprocessing import Pool
-
-matplotlib.use("TkAgg")
+from tqdm import tqdm
 
 electron_mass = (constants.electron_mass * constants.c ** 2) / (constants.electron_volt * 10 ** 3)  # in keV
 
@@ -65,6 +63,7 @@ def plot_3d(view_only_intersections=False):
     :param view_only_intersections: True or False
     :return:
     """
+    matplotlib.use("TkAgg")
     if view_only_intersections:
         intersections = voxel_cube > 1
         # intersections = np.where(voxel_cube > 1, voxel_cube, True)
@@ -110,7 +109,7 @@ if __name__ == '__main__':
     firstpair = DetectionPair([40, 50, 10], [40, 50, 0], 500, 420, 0.463647609)
     secondpair = DetectionPair([80, 50, 10], [80, 50, 0], 500, 300, 0.6435011088)
     thirdpair = DetectionPair([50, 10, 10], [50, 10, 0], 500, 400, np.pi / 4)
-    for n in range(0, 1):
+    for n in range(0, 100):
         pairs.append(firstpair)
         pairs.append(secondpair)
         pairs.append(thirdpair)
@@ -120,20 +119,21 @@ if __name__ == '__main__':
     """setup the imaging area"""
     cubesize = 100
     imaging_area = np.array([cubesize, cubesize, cubesize])  # m
-    voxel_length = 2 * 10 ** (0)  # m
+    voxel_length = 1 * 10 ** (0)  # m
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
 
-    voxel_cube = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
+    #voxel_cube = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
 
     points_per_voxel_side = 2
     checks_per_side = 4
-    counter = 0
-    t_0 = time.time()
-    first = True
-    cone_list = []
     args = [(imaging_area, voxel_length, voxels_per_side, checks_per_side, pairs[i]) for i in range(len(pairs))]
+    print('start')
     with Pool(multiprocessing.cpu_count()) as p:
-        cone_list = p.map(calculate_voxel_cone_cube, args)
+        cone_list = list(tqdm(p.imap_unordered(calculate_voxel_cone_cube, iterable=args), total=len(pairs)))
+        '''        while cone_list._number_left > 0:
+            number_of_tasks_complete = len(pairs) - cone_list._number_left * cone_list._chunksize
+            pbar.update(number_of_tasks_complete)
+        pbar.close()'''
     '''
     for n, pair in enumerate(pairs):
         # print(calculate_voxel_cone_cube(pair))
@@ -174,7 +174,6 @@ if __name__ == '__main__':
                 if z1_arg != z2_arg:
                     voxel_cube_cone[x//checks_per_side, y//checks_per_side, z2_arg] = 1'''
     voxel_cube = np.sum(cone_list, axis=0)
-    print(counter)
     print(np.max(voxel_cube))
 
     print(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape))
@@ -185,4 +184,4 @@ if __name__ == '__main__':
 
     # and plot everything
 
-    plot_3d()
+    #plot_3d()
