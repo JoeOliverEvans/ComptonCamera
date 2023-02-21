@@ -74,7 +74,7 @@ def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
     cones = np.where(voxel_cube < 1, voxel_cube, False)
 
     if view_only_intersections:
-        intersections = voxel_cube >= np.max(voxel_cube)-1
+        intersections = voxel_cube >= np.max(voxel_cube)
         # intersections = np.where(voxel_cube > 1, voxel_cube, True)
         intersections = np.array(intersections, dtype=bool)
         colors[intersections] = 'green'
@@ -99,10 +99,20 @@ def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
 
 def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersections=-1):
     if min_intersections == -1:
-        min_intersections = np.max(voxel_cube)-1
-    voxel_cube_maya = np.where(voxel_cube >= min_intersections, voxel_cube, 0)
-    mlab.points3d(voxel_cube, mode='cube', color=(0, 1, 0), scale_factor=0.1)
-    mlab.axes()
+        min_intersections = np.max(voxel_cube_maya)
+    max_intersections_arguments = np.array(np.argwhere(voxel_cube == min_intersections))
+    c = max_intersections_arguments[:, 0]
+    v = max_intersections_arguments[:, 1]
+    b = max_intersections_arguments[:, 2]
+    #np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
+    mlab.points3d(c*voxel_length,v*voxel_length,b*voxel_length, voxel_cube[c, v, b], mode='cube', color=(0, 1, 0), scale_mode='none', scale_factor=voxel_length)
+    max_intersections_arguments = np.array(np.argwhere(voxel_cube > 0))
+    c = max_intersections_arguments[:, 0]
+    v = max_intersections_arguments[:, 1]
+    b = max_intersections_arguments[:, 2]
+    #np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
+    mlab.points3d(c*voxel_length,v*voxel_length,b*voxel_length, voxel_cube[c, v, b], mode='cube', scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')
+    mlab.axes(xlabel='x', ylabel='y', zlabel='z', extent=(0, 40, 0, 40, 0, 40), nb_labels=10)
     mlab.show()
 
 
@@ -127,19 +137,18 @@ if __name__ == '__main__':
     """create some pairs of detections"""
     pairs = []
     df = pd.read_csv(r'C:\Users\joeol\Documents\Computing year 2\ComptonCamera\Monte Carlo\copy filepath to excel file here .xls')
-    for x in df.index:
+    for x in range(5):
         row = df.iloc[[x]].to_numpy()[0]
         pairs.append(DetectionPair([row[1], row[2], row[3]], [row[4], row[5], row[6]], 500, 420, row[7]))
 
     """setup the imaging area"""
     cubesize = 40
     imaging_area = np.array([cubesize, cubesize, cubesize])  # m
-    voxel_length = 0.2 * 10 ** (0)  # m
+    voxel_length = 0.5 * 10 ** (0)  # m
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
-    points_per_voxel_side = 2
-    checks_per_side = 2
-    pairs_grouped = np.array_split(pairs, (len(pairs)//50)+1)
+    checks_per_side = 8
+    pairs_grouped = np.array_split(pairs, (len(pairs)//25)+1)
     with Pool(multiprocessing.cpu_count()) as p:
         t = tqdm(total=len(pairs))
         for cone_group in pairs_grouped:
@@ -153,10 +162,10 @@ if __name__ == '__main__':
     #voxel_cube = np.sum(cone_list, axis=0)
     cone_list = 0
     print(np.max(voxel_cube))
-
-    print(np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape), dtype=np.float64)*voxel_length)
+    print(np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64)*voxel_length)
+    #print(np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape), dtype=np.float64)*voxel_length)
 
     # and plot everything
 
     #plot_3d(view_only_intersections=True)
-    #mayavi_plot_3d(voxel_cube, view_only_intersections=True)
+    mayavi_plot_3d(voxel_cube, view_only_intersections=True)
