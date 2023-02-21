@@ -14,6 +14,7 @@ warnings.filterwarnings("ignore", message="invalid value encountered")
 
 electron_mass = (constants.electron_mass * constants.c ** 2) / (constants.electron_volt * 10 ** 3)  # in keV
 
+
 def CalculateScatterAngle(initial_energy, final_energy):
     """
     :param final_energy:
@@ -96,10 +97,10 @@ def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
         plt.show()
 
 
-def mayavi_plot_3d(voxel_cube, view_only_intersections=True, min_intersections=-1):
+def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersections=-1):
     if min_intersections == -1:
         min_intersections = np.max(voxel_cube)-1
-    voxel_cube = np.where(voxel_cube >= min_intersections, voxel_cube, 0)
+    voxel_cube_maya = np.where(voxel_cube >= min_intersections, voxel_cube, 0)
     mlab.points3d(voxel_cube, mode='cube', color=(0, 1, 0), scale_factor=0.1)
     mlab.axes()
     mlab.show()
@@ -133,58 +134,22 @@ if __name__ == '__main__':
     """setup the imaging area"""
     cubesize = 40
     imaging_area = np.array([cubesize, cubesize, cubesize])  # m
-    voxel_length = 0.1 * 10 ** (0)  # m
+    voxel_length = 0.2 * 10 ** (0)  # m
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
     points_per_voxel_side = 2
     checks_per_side = 2
-    args = [(imaging_area, voxel_length, voxels_per_side, checks_per_side, pairs[i]) for i in range(len(pairs))]
+    pairs_grouped = np.array_split(pairs, (len(pairs)//50)+1)
     with Pool(multiprocessing.cpu_count()) as p:
-        for x in tqdm(p.imap_unordered(calculate_voxel_cone_cube, iterable=args), total=len(pairs)):
-            voxel_cube += x
-        '''        while cone_list._number_left > 0:
-            number_of_tasks_complete = len(pairs) - cone_list._number_left * cone_list._chunksize
-            pbar.update(number_of_tasks_complete)
-        pbar.close()'''
-    '''
-    for n, pair in enumerate(pairs):
-        # print(calculate_voxel_cone_cube(pair))
-        cone_list.append(calculate_voxel_cone_cube(pair))
-        if (time.time() - t_0) > 5:
-            if first:
-                first = False
-                time_to_completion = round((time.time() - t_0) * len(pairs) / n)
-                print('Estimated time to completion : ' + str(datetime.timedelta(seconds=time_to_completion)))
-            print(str(n) + ' / ' + str(len(pairs)))
-            t_0 = time.time()'''
-    '''     x_values = np.tile(np.arange(0, imaging_area[0], voxel_length / checks_per_side) - pair.scatterPosition[0],
-                           (voxels_per_side[1] * checks_per_side, 1))
-        y_values = np.tile(
-            np.array(
-                [np.arange(0, imaging_area[1], voxel_length / checks_per_side) - pair.scatterPosition[1]]).transpose(),
-            (1, voxels_per_side[0] * checks_per_side))
+        t = tqdm(total=len(pairs))
+        for cone_group in pairs_grouped:
+            args = [(imaging_area, voxel_length, voxels_per_side, checks_per_side, cone_group[i]) for i in range(len(cone_group))]
+            for x in p.imap_unordered(calculate_voxel_cone_cube, iterable=args):
+                t.update()
+                voxel_cube += x
+            args = 0
+        t.close()
 
-        z1, z2 = calculate_cone_z(pair, x_values, y_values)
-        z1_arg = -1
-        z2_arg = -1
-        voxel_cube_cone = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
-        for (x1, y1) in np.argwhere((0 <= z1) & (z1 < imaging_area[2])):
-            counter += 1
-            voxel_cube_cone[x1 // checks_per_side, y1 // checks_per_side, int(z1[x1, y1] // voxel_length)] = 1
-        for (x2, y2) in np.argwhere((0 <= z2) & (z2 < imaging_area[2])):
-            counter += 1
-            voxel_cube_cone[x2 // checks_per_side, y2 // checks_per_side, int(z2[x2, y2] // voxel_length)] = 1'''
-    '''
-        for (x, y), value in np.ndenumerate(z1):
-            counter+=1
-            x = voxels_per_side[0] - (x+1)
-            if 0 <= z1[y, x] < imaging_area[2]:
-                z1_arg = int(z1[y, x] // voxel_length)
-                voxel_cube_cone[x//checks_per_side, y//checks_per_side, z1_arg] = 1
-            if 0 <= z2[y, x] < imaging_area[2]:
-                z2_arg = int(z2[y, x] // voxel_length)
-                if z1_arg != z2_arg:
-                    voxel_cube_cone[x//checks_per_side, y//checks_per_side, z2_arg] = 1'''
     #voxel_cube = np.sum(cone_list, axis=0)
     cone_list = 0
     print(np.max(voxel_cube))
