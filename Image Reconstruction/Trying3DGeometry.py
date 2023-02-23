@@ -17,8 +17,8 @@ electron_mass = (constants.electron_mass * constants.c ** 2) / (constants.electr
 
 def CalculateScatterAngle(initial_energy, final_energy):
     """
-    :param final_energy:
-    :param initial_energy:
+    :param final_energy: keV
+    :param initial_energy: keV
     :return: Compton Scattering Angle in radians
     """
     return np.arccos(
@@ -51,8 +51,8 @@ def calculate_cone_z(pair_of_detections, x, y):
     b = pair_of_detections.lineVector[1]
     c = pair_of_detections.lineVector[2]
     t = pair_of_detections.scatterAngle
-    g = np.cos(t) * (a ** 2 + b ** 2 + c ** 2) ** (1 / 2)
-    d = (c ** 2 / g ** 2) - 1
+    g = np.cos(t) * np.sqrt(a ** 2 + b ** 2 + c ** 2)
+    d = (c ** 2 / g ** 2)
     e = (2 * a * x * c + b * y * c) / (g ** 2)
     f = (((a * x) ** 2 + (b * y) ** 2 + 2 * a * x * b * y) / (g ** 2)) - x ** 2 - y ** 2
     h = e ** 2 - 4 * d * f
@@ -99,19 +99,19 @@ def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
 def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersections=-1):
     if min_intersections == -1:
         min_intersections = np.max(voxel_cube_maya)
-    max_intersections_arguments = np.array(np.argwhere(voxel_cube >0))
+    max_intersections_arguments = np.array(np.argwhere(voxel_cube == np.max(voxel_cube_maya)))
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
     #np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
     mlab.points3d(c*voxel_length,v*voxel_length,b*voxel_length, voxel_cube[c, v, b], mode='cube', color=(0, 1, 0), scale_mode='none', scale_factor=voxel_length)
-    '''max_intersections_arguments = np.array(np.argwhere(voxel_cube > 1))
+    '''max_intersections_arguments = np.array(np.argwhere(voxel_cube >= np.max(voxel_cube_maya) - 5))
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
     #np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
     mlab.points3d(c*voxel_length,v*voxel_length,b*voxel_length, voxel_cube[c, v, b], mode='cube', scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')'''
-    mlab.axes(xlabel='x', ylabel='y', zlabel='z', extent=(0, 40, 0, 40, 0, 40), nb_labels=10)
+    mlab.axes(xlabel='x', ylabel='y', zlabel='z', extent=(0, 40, 0, 40, 0, 40), nb_labels=8)
     mlab.show()
 
 
@@ -135,19 +135,18 @@ def calculate_voxel_cone_cube(arg):
 if __name__ == '__main__':
     """create some pairs of detections"""
     pairs = []
-    df = pd.read_csv(r'C:\Users\Joe Evans\PycharmProjects\ComptonCamera\Monte Carlo\copy filepath to excel file here .xls')
+    df = pd.read_csv(r'C:\Users\joeol\Documents\Computing year 2\ComptonCamera\Monte Carlo\copy filepath to excel file here .xls')
     for x in df.index:
         row = df.iloc[[x]].to_numpy()[0]
-        pairs.append(DetectionPair([row[1], row[2], row[3]], [row[4], row[5], row[6]], 500, 420, row[7]/2))
-        print(pairs[0].lineVector)
+        pairs.append(DetectionPair([row[1], row[2], row[3]], [row[4], row[5], row[6]], 500, 420, row[7]))
     #pairs.append(DetectionPair([30, 15, 15], [40, 20, 20], 500, 420, np.pi/4))
     """setup the imaging area"""
     cubesize = 40
     imaging_area = np.array([cubesize, cubesize, cubesize])  # m
-    voxel_length = 0.1 * 10 ** (0)  # m
+    voxel_length = 0.25 * 10 ** (0)  # m
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
-    checks_per_side = 8
+    checks_per_side = 4
     pairs_grouped = np.array_split(pairs, (len(pairs)//25)+1)
     with Pool(multiprocessing.cpu_count()) as p:
         t = tqdm(total=len(pairs))
