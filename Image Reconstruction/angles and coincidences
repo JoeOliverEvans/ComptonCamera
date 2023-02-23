@@ -11,14 +11,18 @@ import pandas as pd
 import numpy as np
 import scipy.constants as constants
 
-data=pd.read_csv(r'/Users/nate/Downloads/SDataR_run.CSV', delimiter=';', header=0) #download the file and put the path here
+data=pd.read_csv(r'/Users/nate/Downloads/montecarloiscoolerthanuinitialdata', delimiter=';', header=0) #download the file and put the path here
 
 
-tol=1*10**5 #coincidence window
+tol=5 #coincidence window
 coincidences_index=[] #stores the index of coincidences
-detector_pos=['thing 0','thing 1'] #position of detectors
-min_angles=[[400,0],[500, 400]] #matrix of minimum angles to go from one detector to the other
-max_angles=[[-400,180],[600,-400]] #matrix of maxiumum angles to go from one detector to the other. -400 means impossible, 180 for 1 to 2, 600 for 2 to 1 (temporarily impossible)
+detector_number=4 #number of detectors
+detector_pos=['thing 0','thing 1','thing 2','thing 3', 'thing 4', 'thing 5', 'thing 6', 'thing 7'] #positions of detectors
+n=400 #impossible minimum angle
+m=-400 #impossile maximum angle
+min_angles=[[n,-4,-4,4],[n,n,n,n],[n,n,n,n],[n,n,n,n]] #matrix of minimum angles to go from one detector to the other in radians
+max_angles=[[m,4,4,4],[m,m,m,m],[m,m,m,m],[m,m,m,m]] #matrix of maxiumum angles to go from one detector to the other in radians
+
 
 for i in range(len(data.iloc[:,2])-1): #for all the data points
     if np.abs(data.iloc[i,2]-data.iloc[i+1,2]) < tol: #is the time diference between points less than the coincidence window
@@ -30,7 +34,7 @@ scatter_locations=[] #locations of scatters
 absorption_energies=[] #energies of absorptions
 absorption_locations=[] #locations of absorptions
 
-electron_mass = (constants.electron_mass * constants.c ** 2) / (constants.electron_volt * 10 ** 3)  # in keV
+electron_mass = (constants.electron_mass * constants.c ** 2)/ (constants.electron_volt * 10 ** 6)  # in MeV
 
 def CalculateScatterAngle(initial_energy, final_energy):
     """
@@ -38,37 +42,28 @@ def CalculateScatterAngle(initial_energy, final_energy):
     :param initial_energy:
     :return: Compton Scattering Angle in radians
     """
-    return np.arccos(
+    if -1<1 - (electron_mass * ((initial_energy - final_energy) / (initial_energy * final_energy)))<1: #if arccos can be calculated
+        return np.arccos(
         1 - (electron_mass * ((initial_energy - final_energy) / (initial_energy * final_energy))))
+    else: #if arccos not calculatable then impossible angle
+        return(2*m)
 
-        
-for index_index, coincidence_index in enumerate(coincidences_index):
-    if data.iloc[coincidence_index,1]==0: #if the coincidence was registered in detector 0
-        angle_scatterer_1=CalculateScatterAngle(data.iloc[coincidence_index,3],data.iloc[coincidence_index+1,3])
-        angle_scatterer_2=CalculateScatterAngle(data.iloc[coincidence_index+1,3],data.iloc[coincidence_index,3])
-        if data.iloc[coincidence_index+1,0]==1: #if the second detector was detector 1
-            if min_angles[0][1]<angle_scatterer_1<max_angles[0][1]: #if the angle is within the geometrically allowed angle bracket (currently holder values of 0 and 180)
-                scatter_energies.append(data.iloc[coincidence_index,3])
-                scatter_locations.append(detector_pos[0])
-                absorption_energies.append(data.iloc[coincidence_index+1,3]) #add absorption energy to list
-                absorption_locations.append(detector_pos[1])
-            if min_angles[1][0]<angle_scatterer_2<max_angles[1][0]: #if the angle is within the geometrically allowed angle bracket (currently impossible holder values)
-                scatter_energies.append(data.iloc[coincidence_index+1,3])
-                scatter_locations.append(detector_pos[1])
-                absorption_energies.append(data.iloc[coincidence_index,3]) #add absorption energy to list
-                absorption_locations.append(detector_pos[0])
-    if data.iloc[coincidence_index,1]==1: #if the coincidence was registered in detector 0
-        angle_scatterer_1=CalculateScatterAngle(data.iloc[coincidence_index,3],data.iloc[coincidence_index+1,3])
-        angle_scatterer_2=CalculateScatterAngle(data.iloc[coincidence_index+1,3],data.iloc[coincidence_index,3])
-        if data.iloc[coincidence_index+1,0]==0: #if the second detector was detector 1
-            if min_angles[1][0]<angle_scatterer_1<max_angles[1][0]: #if the angle is within the geometrically allowed angle bracket (currently holder values of 0 and 180)
-                scatter_energies.append(data.iloc[coincidence_index,3])
-                scatter_locations.append(detector_pos[1])
-                absorption_energies.append(data.iloc[coincidence_index+1,3]) #add absorption energy to list
-                absorption_locations.append(detector_pos[0])
-            if min_angles[0][1]<angle_scatterer_2<max_angles[0][1]: #if the angle is within the geometrically allowed angle bracket (currently impossible holder values)
-                scatter_energies.append(data.iloc[coincidence_index+1,3])
-                scatter_locations.append(detector_pos[1])
-                absorption_energies.append(data.iloc[coincidence_index,3]) #add absorption energy to list
-                absorption_locations.append(detector_pos[0])
+                
+for index_index, coincidence_index in enumerate(coincidences_index): #for all the coincidences
+    for i in range(detector_number):
+        for j in range(detector_number):
+            if data.iloc[coincidence_index,1]==i: #if the coincidence was registered in detector i
+                if data.iloc[coincidence_index+1,1]==j: #if the second detector involved was detector j
+                    angle_scatterer_1=CalculateScatterAngle(data.iloc[coincidence_index,3],data.iloc[coincidence_index+1,3]) #angle of scatter if scatter from i to j
+                    angle_scatterer_2=CalculateScatterAngle(data.iloc[coincidence_index+1,3],data.iloc[coincidence_index,3]) #angle of scatter if scatter from j to i
+                    if min_angles[i][j]<angle_scatterer_1<max_angles[i][j]: #if the angle from i to j is within the geometrically allowed values
+                        scatter_energies.append(data.iloc[coincidence_index,3]) #add scatter energy to list
+                        scatter_locations.append(detector_pos[i]) #add scatter location to list
+                        absorption_energies.append(data.iloc[coincidence_index+1,3]) #add absorption energy to list
+                        absorption_locations.append(detector_pos[j]) #add absorption locator to list
+                    if min_angles[j][i]<angle_scatterer_2<max_angles[j][i]: #if the angle from j to i is within the geometrically allowed values
+                        scatter_energies.append(data.iloc[coincidence_index+1,3]) #add scatter energy to list
+                        scatter_locations.append(detector_pos[j]) #add scatter location to list
+                        absorption_energies.append(data.iloc[coincidence_index,3]) #add absorption energy to list
+                        absorption_locations.append(detector_pos[i]) #add absorption location to list
    
