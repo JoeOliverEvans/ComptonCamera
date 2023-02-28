@@ -2,13 +2,14 @@ import multiprocessing
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as constants
-import matplotlib; matplotlib.use("TkAgg")
+import matplotlib;
+
+matplotlib.use("TkAgg")
 from multiprocessing import Pool
 from tqdm import tqdm
 import pandas as pd
 from mayavi import mlab
 import warnings
-
 
 warnings.filterwarnings("ignore", message="invalid value encountered")
 
@@ -35,11 +36,14 @@ class DetectionPair:
         """
         self.scatterPosition = np.float64(scatter_position)
         self.absorptionPosition = np.float64(absorption_position)
-        self.lineVector = np.array((np.array(self.scatterPosition) - np.array(self.absorptionPosition)) / np.linalg.norm(np.array(self.scatterPosition) - np.array(self.absorptionPosition)), dtype=np.float64)
+        self.lineVector = np.array(
+            (np.array(self.scatterPosition) - np.array(self.absorptionPosition)) / np.linalg.norm(
+                np.array(self.scatterPosition) - np.array(self.absorptionPosition)), dtype=np.float64)
         self.absorptionEnergy = np.float64(absorption_energy)
         self.scatterAngle = np.float64(angle)  # CalculateScatterAngle(initial_energy, absorption_energy)
 
 
+'''
 def calculate_cone_z(pair_of_detections, x, y):
     """
     :param pair_of_detections: the pair of detections that produce the cone
@@ -59,6 +63,7 @@ def calculate_cone_z(pair_of_detections, x, y):
     z1 = ((-e - np.sqrt(h)) / (2 * d)) + pair_of_detections.scatterPosition[2]
     z2 = ((-e + np.sqrt(h)) / (2 * d)) + pair_of_detections.scatterPosition[2]
     return z1, z2
+'''
 
 
 def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
@@ -103,8 +108,9 @@ def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersecti
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
-    #np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
-    mlab.points3d(c*voxel_length,v*voxel_length,b*voxel_length, voxel_cube[c, v, b], mode='cube', color=(0, 1, 0), scale_mode='none', scale_factor=voxel_length)
+    # np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
+    mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
+                  color=(0, 1, 0), scale_mode='none', scale_factor=voxel_length)
     '''max_intersections_arguments = np.array(np.argwhere(voxel_cube >= np.max(voxel_cube_maya) - 5))
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
@@ -115,6 +121,7 @@ def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersecti
     mlab.show()
 
 
+'''
 def calculate_voxel_cone_cube(arg):
     imaging_area, voxel_length, voxels_per_side, checks_per_side, pair_of_detections = arg[0], arg[1], arg[2], arg[3], arg[4]
     x_values = np.array(np.tile(np.arange(0, imaging_area[0], voxel_length / checks_per_side) - pair_of_detections.scatterPosition[0],
@@ -129,17 +136,71 @@ def calculate_voxel_cone_cube(arg):
         voxel_cube_cone[y1 // checks_per_side, x1 // checks_per_side, int(z1[x1, y1] // voxel_length)] = 1
     for (x2, y2) in np.argwhere((0 <= z2) & (z2 < imaging_area[2])):
         voxel_cube_cone[y2 // checks_per_side, x2 // checks_per_side, int(z2[x2, y2] // voxel_length)] = 1
+    return voxel_cube_cone'''
+
+
+def generate_points(imaging_area, pair_of_detections):
+    """
+    Uses Amber's cone equation to calculate points in a cone that is not pointing in the correct direction
+    :param pair_of_detections: Detection Pair object
+    :return: points: list containing 4 vectors, forth value is a weighting for uncertainty
+    """
+    points = []
+    return points
+
+
+def rotate_to_vector_and_translate(points, pair_of_detections):
+    """
+    Rotates a series of points making a cone to the correct cone axis, then translates using scatter position
+    :param pair_of_detections: Detection Pair object
+    :param points: list containing 4 vectors, forth value is a weighting for uncertainty
+    :return: rotated_points_with_translation_in_area: list containing 4 vectors, forth value is a weighting for uncertainty
+    """
+    rotated_points = points  # Cara rotation matrix
+    rotated_points_with_translation = [rotated_points[:][0] + pair_of_detections.scatterPosition[0],
+                                       rotated_points[:][1] + pair_of_detections.scatterPosition[1],
+                                       rotated_points[:][2] + pair_of_detections.scatterPosition[2],
+                                       rotated_points[:][3]]
+    rotated_points_with_translation_in_area = []
+    for point in rotated_points_with_translation:
+        if 0 <= point[0] < imaging_area[0] + 1 and \
+                0 <= point[1] < imaging_area[1] + 1 and \
+                0 <= point[2] < imaging_area[2] + 1:
+            rotated_points_with_translation_in_area.append(point)
+    return rotated_points_with_translation_in_area
+
+
+def calculate_cone_polars(imaging_area, pair_of_detections):
+    """
+    Calculates points for a cone in the correct orientation and starting position within the imaging area
+    :param imaging_area: the size of the imaging area
+    :param pair_of_detections: Detection Pair object
+    :return: translated_rotated_points: list containing 4 vectors, forth value is a weighting for uncertainty
+    """
+    points = generate_points(imaging_area, pair_of_detections)
+    translated_rotated_points = rotate_to_vector_and_translate(points, pair_of_detections)
+    return translated_rotated_points
+
+
+def calculate_voxel_cone_cube(arg):
+    imaging_area, voxel_length, voxels_per_side, checks_per_side, pair_of_detections = arg[0], arg[1], arg[2], arg[3], \
+                                                                                       arg[4]
+    cone_points_with_weighting = calculate_cone_polars(imaging_area, pair_of_detections)
+    voxel_cube_cone = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
+    for point in cone_points_with_weighting:
+        voxel_cube_cone[point[0] // voxel_length, point[1] // voxel_length, point[2] // voxel_length] = point[3]
     return voxel_cube_cone
 
 
 if __name__ == '__main__':
     """create some pairs of detections"""
     pairs = []
-    df = pd.read_csv(r'C:\Users\joeol\Documents\Computing year 2\ComptonCamera\Monte Carlo\copy filepath to excel file here .xls')
+    df = pd.read_csv(
+        r'C:\Users\joeol\Documents\Computing year 2\ComptonCamera\Monte Carlo\copy filepath to excel file here .xls')
     for x in df.index:
         row = df.iloc[[x]].to_numpy()[0]
         pairs.append(DetectionPair([row[1], row[2], row[3]], [row[4], row[5], row[6]], 500, 420, row[7]))
-    #pairs.append(DetectionPair([30, 15, 15], [40, 20, 20], 500, 420, np.pi/4))
+    # pairs.append(DetectionPair([30, 15, 15], [40, 20, 20], 500, 420, np.pi/4))
     """setup the imaging area"""
     cubesize = 40
     imaging_area = np.array([cubesize, cubesize, cubesize])  # m
@@ -147,24 +208,25 @@ if __name__ == '__main__':
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
     checks_per_side = 4
-    pairs_grouped = np.array_split(pairs, (len(pairs)//25)+1)
+    pairs_grouped = np.array_split(pairs, (len(pairs) // 25) + 1)
     with Pool(multiprocessing.cpu_count()) as p:
         t = tqdm(total=len(pairs))
         for cone_group in pairs_grouped:
-            args = [(imaging_area, voxel_length, voxels_per_side, checks_per_side, cone_group[i]) for i in range(len(cone_group))]
+            args = [(imaging_area, voxel_length, voxels_per_side, checks_per_side, cone_group[i]) for i in
+                    range(len(cone_group))]
             for x in p.imap_unordered(calculate_voxel_cone_cube, iterable=args):
                 t.update()
                 voxel_cube += x
             args = 0
         t.close()
 
-    #voxel_cube = np.sum(cone_list, axis=0)
+    # voxel_cube = np.sum(cone_list, axis=0)
     cone_list = 0
     print(np.max(voxel_cube))
-    print(np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64)*voxel_length)
-    #print(np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape), dtype=np.float64)*voxel_length)
+    print(np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length)
+    # print(np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape), dtype=np.float64)*voxel_length)
 
     # and plot everything
 
-    #plot_3d(view_only_intersections=True)
+    # plot_3d(view_only_intersections=True)
     mayavi_plot_3d(voxel_cube, view_only_intersections=True)
