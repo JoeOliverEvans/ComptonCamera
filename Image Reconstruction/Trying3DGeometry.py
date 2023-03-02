@@ -106,7 +106,7 @@ def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
 def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersections=-1):
     if min_intersections == -1:
         min_intersections = np.max(voxel_cube_maya)
-    max_intersections_arguments = np.array(np.argwhere(voxel_cube > 0))
+    max_intersections_arguments = np.array(np.argwhere(voxel_cube == np.max(voxel_cube)))
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
@@ -146,10 +146,35 @@ def generate_points(imaging_area, pair_of_detections, voxel_length, weight=1):
     Uses Amber's cone equation to calculate points in a cone that is not pointing in the correct direction
     :param weight: Weighting for uncertainties
     :param pair_of_detections: Detection Pair object
-    :return: points: list containing 4 vectors, forth value is a weighting for uncertainty
+    :return points: list containing 4 vectors, forth value is a weighting for uncertainty
     """
+    def rotation_matrix(vec1, vec2):
+        """
+        Cara's rotation matrix code from one vector to anther vector
+        :param vec1: vector of the z axis
+        :param vec2: vector of the cone vector
+        :return rotation_matrix: 3x3 matrix
+        """
+        a, b = (vec1 / np.linalg.norm(vec1)).reshape(3), (vec2 / np.linalg.norm(vec2)).reshape(3)
+        v = np.cross(a, b)
+        c = np.dot(a, b)
+        s = np.linalg.norm(v)
+        kmat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+        rotation_matrix = np.eye(3) + kmat + kmat.dot(kmat) * ((1 - c) / (s ** 2))
+        return rotation_matrix
+
+    vect1 = [0, 0, 1]
+    vect2 = pair_of_detections.lineVector
+
     theta_c = pair_of_detections.scatterAngle
-    R_max = imaging_area[0]*3/4     # This corresponds to the distance of a point on the cone from the origin
+    edge_points = [[0, 0, 0], [imaging_area[0], 0, 0], [0, imaging_area[1], 0], [imaging_area[0], imaging_area[1], 0], [0, 0, imaging_area[2]], [imaging_area[0], 0, imaging_area[2]], [0, imaging_area[1], imaging_area[2]], [imaging_area[0], imaging_area[1], imaging_area[2]]]
+    R_max = 0
+    for edge_point in edge_points:
+        magnitude = np.linalg.norm(edge_point-pair_of_detections.scatterPosition)
+        if magnitude > R_max:
+            R_max = magnitude
+
+    #R_max = imaging_area[0]    # This corresponds to the distance of a point on the cone from the origin
 
     R = np.arange(0, R_max, voxel_length/2)
     points = np.array([1, 1, 1, 1])
@@ -160,35 +185,16 @@ def generate_points(imaging_area, pair_of_detections, voxel_length, weight=1):
             Theta_size = np.pi
         Theta = np.linspace(0, 2 * np.pi, 2 * int(np.abs(2 * np.pi // Theta_size) + 1))
         for t in Theta:
-            point = np.array(
-                [r * np.sin(theta_c) * np.cos(t), r * np.sin(theta_c) * np.sin(t), np.cos(theta_c) * r, weight])
-            points = np.row_stack((points, point))
+            Rot = rotation_matrix(vect1, vect2)
+            rotated_point = Rot.dot([r * np.sin(theta_c) * np.cos(t), r * np.sin(theta_c) * np.sin(t), np.cos(theta_c) * r])
+            rotated_translated_point = rotated_point + pair_of_detections.scatterPosition
+            if 0 <= rotated_translated_point[0] < imaging_area[0] and 0 <= rotated_translated_point[1] < imaging_area[1] and 0 <= rotated_translated_point[2] < \
+                    imaging_area[2]:
+                point = np.array([*list(rotated_translated_point), weight])
+                points = np.row_stack((points, point))
 
     points = np.delete(points, 0, axis=0)
-    # print(points)
     return points
-
-
-def rotate_to_vector_and_translate(points, pair_of_detections, voxel_length, imaging_area):
-    """
-    Rotates a series of points making a cone to the correct cone axis, then translates using scatter position
-    :param pair_of_detections: Detection Pair object
-    :param points: list containing 4 vectors, forth value is a weighting for uncertainty
-    :return: rotated_points_with_translation_in_area: list containing 4 vectors, forth value is a weighting for uncertainty
-    """
-    rotated_points = points  # Cara rotation matrix
-    rotated_points_with_translation = points
-
-    rotated_points_with_translation_in_area = np.array([0, 0, 0, 0])
-    for point in rotated_points_with_translation:
-        subpoint = point[:-1] + pair_of_detections.scatterPosition
-        subpoint = np.append(subpoint, point[3])
-        if 0 <= subpoint[0] < imaging_area[0] and 0 <= subpoint[1] < imaging_area[1] and 0 <= subpoint[2] < \
-                imaging_area[2]:
-            rotated_points_with_translation_in_area = np.row_stack((rotated_points_with_translation_in_area, subpoint))
-    rotated_points_with_translation_in_area = np.delete(rotated_points_with_translation_in_area, 0, axis=0)
-    # print(rotated_points_with_translation_in_area)
-    return rotated_points_with_translation_in_area
 
 
 def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
@@ -198,8 +204,8 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
     :param pair_of_detections: Detection Pair object
     :return: translated_rotated_points: list containing 4 vectors, forth value is a weighting for uncertainty
     """
-    points = generate_points(imaging_area, pair_of_detections, voxel_length)
-    translated_rotated_points = rotate_to_vector_and_translate(points, pair_of_detections, voxel_length, imaging_area)
+    translated_rotated_points = generate_points(imaging_area, pair_of_detections, voxel_length)
+    #translated_rotated_points = rotate_to_vector_and_translate(points, pair_of_detections, voxel_length, imaging_area)
     return translated_rotated_points
 
 
@@ -219,15 +225,15 @@ if __name__ == '__main__':
     """create some pairs of detections"""
     pairs = []
     df = pd.read_csv(
-        r'C:\Users\Joe Evans\PycharmProjects\ComptonCamera\Monte Carlo\copy filepath to excel file here .xls')
-    for x in range(3,4):
+        r'C:\Users\joeol\Documents\Computing year 2\ComptonCamera\Monte Carlo\copy filepath to excel file here .xls')
+    for x in range(16):
         row = df.iloc[[x]].to_numpy()[0]
         pairs.append(DetectionPair([row[1], row[2], row[3]], [row[4], row[5], row[6]], 500, 420, row[7]))
     # pairs.append(DetectionPair([30, 15, 15], [40, 20, 20], 500, 420, np.pi/4))
     """setup the imaging area"""
     cubesize = 40
     imaging_area = np.array([cubesize, cubesize, cubesize])  # m
-    voxel_length = 0.5 * 10 ** (0)  # m
+    voxel_length = 0.25 * 10 ** (0)  # m
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
     checks_per_side = 4
@@ -245,7 +251,7 @@ if __name__ == '__main__':
 
     # voxel_cube = np.sum(cone_list, axis=0)
     cone_list = 0
-    # print(np.max(voxel_cube))
+    print(np.max(voxel_cube))
     # print(np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length)
     # print(np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape), dtype=np.float64)*voxel_length)
 
