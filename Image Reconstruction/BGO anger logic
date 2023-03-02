@@ -39,35 +39,46 @@ for i in range(len(data.iloc[:,2])-3): #for all the data points
                 
 interaction_energies=[] #energies of interactions
 interaction_locations=[] #locations of interactions
+cal_grad=[1,1,1,1] #list of gradients of the calibration for each detector
+cal_intercept=[0,0,0,0] #list of intercepts of the calibration for each detector
 
 for index_index, coincidence_index in enumerate(coincidences_index_0): #for all the not coincidences
-    interaction_energies.append(data.iloc[coincidence_index,3]) #the energy is just the energy in the detector
+    E0=(data.iloc[coincidence_index,3]-cal_intercept[data.iloc[coincidence_index,1]])/cal_grad[data.iloc[coincidence_index,1]]
+    interaction_energies.append(E0) #the energy is just the energy in the detector
     interaction_locations.append(detector_pos[data.iloc[coincidence_index,1]]) #the location is just the location of the detector
 
 for index_index, coincidence_index in enumerate(coincidences_index_1): #for all the coincidences
-    energy=data.iloc[coincidence_index,3]+data.iloc[coincidence_index+1,3] #energy is sum of all energies
+    E0=(data.iloc[coincidence_index,3]-cal_intercept[data.iloc[coincidence_index,1]])/cal_grad[data.iloc[coincidence_index,1]]
+    E1=(data.iloc[coincidence_index+1,3]-cal_intercept[data.iloc[coincidence_index+1,1]])/cal_grad[data.iloc[coincidence_index+1,1]]
+    energy=E0+E1 #energy is sum of all energies
     interaction_energies.append(energy)
-    location_x=data.iloc[coincidence_index,3]*detector_pos[data.iloc[coincidence_index,1]][0]+data.iloc[coincidence_index+1,3]*detector_pos[data.iloc[coincidence_index+1,1]][0] #anger logic
-    location_y=data.iloc[coincidence_index,3]*detector_pos[data.iloc[coincidence_index,1]][1]+data.iloc[coincidence_index+1,3]*detector_pos[data.iloc[coincidence_index+1,1]][1]
-    location_z=data.iloc[coincidence_index,3]*detector_pos[data.iloc[coincidence_index,1]][2]+data.iloc[coincidence_index+1,3]*detector_pos[data.iloc[coincidence_index+1,1]][2]
+    location_x=E0*detector_pos[data.iloc[coincidence_index,1]][0]+E1*detector_pos[data.iloc[coincidence_index+1,1]][0] #anger logic
+    location_y=E0*detector_pos[data.iloc[coincidence_index,1]][1]+E1*detector_pos[data.iloc[coincidence_index+1,1]][1]
+    location_z=E0*detector_pos[data.iloc[coincidence_index,1]][2]+E1*detector_pos[data.iloc[coincidence_index+1,1]][2]
     location=[location_x/energy,location_y/energy,location_z/energy]
     interaction_locations.append(location)
     
 for index_index, coincidence_index in enumerate(coincidences_index_2): #for all the coincidences
-    energy=data.iloc[coincidence_index,3]+data.iloc[coincidence_index+1,3]+data.iloc[coincidence_index+2,3]
+    E0=(data.iloc[coincidence_index,3]-cal_intercept[data.iloc[coincidence_index,1]])/cal_grad[data.iloc[coincidence_index,1]]
+    E1=(data.iloc[coincidence_index+1,3]-cal_intercept[data.iloc[coincidence_index+1,1]])/cal_grad[data.iloc[coincidence_index+1,1]]
+    E2=(data.iloc[coincidence_index+2,3]-cal_intercept[data.iloc[coincidence_index+2,1]])/cal_grad[data.iloc[coincidence_index+2,1]]
+    energy=E0+E1+E2 #energy is sum of all energies
     interaction_energies.append(energy)
-    location_x=data.iloc[coincidence_index,3]*detector_pos[data.iloc[coincidence_index,1]][0]+data.iloc[coincidence_index+1,3]*detector_pos[data.iloc[coincidence_index+1,1]][0]+data.iloc[coincidence_index+2,3]*detector_pos[data.iloc[coincidence_index+2,1]][0]
-    location_y=data.iloc[coincidence_index,3]*detector_pos[data.iloc[coincidence_index,1]][1]+data.iloc[coincidence_index+1,3]*detector_pos[data.iloc[coincidence_index+1,1]][1]+data.iloc[coincidence_index+2,3]*detector_pos[data.iloc[coincidence_index+2,1]][1]
-    location_z=data.iloc[coincidence_index,3]*detector_pos[data.iloc[coincidence_index,1]][2]+data.iloc[coincidence_index+1,3]*detector_pos[data.iloc[coincidence_index+1,1]][2]+data.iloc[coincidence_index+2,3]*detector_pos[data.iloc[coincidence_index+2,1]][2]
+    location_x=E0*detector_pos[data.iloc[coincidence_index,1]][0]+E1*detector_pos[data.iloc[coincidence_index+1,1]][0]+E2*detector_pos[data.iloc[coincidence_index+2,1]][0]
+    location_y=E0*detector_pos[data.iloc[coincidence_index,1]][1]+E1*detector_pos[data.iloc[coincidence_index+1,1]][1]+E2*detector_pos[data.iloc[coincidence_index+2,1]][1]
+    location_z=E0*detector_pos[data.iloc[coincidence_index,1]][2]+E1*detector_pos[data.iloc[coincidence_index+1,1]][2]+E2*detector_pos[data.iloc[coincidence_index+2,1]][2]
     location=[location_x/energy,location_y/energy,location_z/energy]
     interaction_locations.append(location)
 
 for index_index, coincidence_index in enumerate(coincidences_index_3): #for all the coincidences
-    energy=data.iloc[coincidence_index,3]+data.iloc[coincidence_index+1,3]+data.iloc[coincidence_index+2,3]+data.iloc[coincidence_index+3,3]
+    E0=(data.iloc[coincidence_index,3]-cal_intercept[data.iloc[coincidence_index,1]])/cal_grad[data.iloc[coincidence_index,1]]
+    E1=(data.iloc[coincidence_index+1,3]-cal_intercept[data.iloc[coincidence_index+1,1]])/cal_grad[data.iloc[coincidence_index+1,1]]
+    E2=(data.iloc[coincidence_index+2,3]-cal_intercept[data.iloc[coincidence_index+2,1]])/cal_grad[data.iloc[coincidence_index+2,1]]
+    E3=(data.iloc[coincidence_index+3,3]-cal_intercept[data.iloc[coincidence_index+3,1]])/cal_grad[data.iloc[coincidence_index+3,1]]
+    energy=E0+E1+E2+E3 #energy is sum of all energies
     interaction_energies.append(energy)
-    location_x=data.iloc[coincidence_index,3]*detector_pos[data.iloc[coincidence_index,1]][0]+data.iloc[coincidence_index+1,3]*detector_pos[data.iloc[coincidence_index+1,1]][0]+data.iloc[coincidence_index+2,3]*detector_pos[data.iloc[coincidence_index+2,1]][0]+data.iloc[coincidence_index+3,3]*detector_pos[data.iloc[coincidence_index+3,1]][0]
-    location_y=data.iloc[coincidence_index,3]*detector_pos[data.iloc[coincidence_index,1]][1]+data.iloc[coincidence_index+1,3]*detector_pos[data.iloc[coincidence_index+1,1]][1]+data.iloc[coincidence_index+2,3]*detector_pos[data.iloc[coincidence_index+2,1]][1]+data.iloc[coincidence_index+3,3]*detector_pos[data.iloc[coincidence_index+3,1]][1]
-    location_z=data.iloc[coincidence_index,3]*detector_pos[data.iloc[coincidence_index,1]][2]+data.iloc[coincidence_index+1,3]*detector_pos[data.iloc[coincidence_index+1,1]][2]+data.iloc[coincidence_index+2,3]*detector_pos[data.iloc[coincidence_index+2,1]][2]+data.iloc[coincidence_index+3,3]*detector_pos[data.iloc[coincidence_index+3,1]][2]
+    location_x=E0*detector_pos[data.iloc[coincidence_index,1]][0]+E1*detector_pos[data.iloc[coincidence_index+1,1]][0]+E2*detector_pos[data.iloc[coincidence_index+2,1]][0]+E3*detector_pos[data.iloc[coincidence_index+3,1]][0]
+    location_y=E0*detector_pos[data.iloc[coincidence_index,1]][1]+E1*detector_pos[data.iloc[coincidence_index+1,1]][1]+E2*detector_pos[data.iloc[coincidence_index+2,1]][1]+E3*detector_pos[data.iloc[coincidence_index+3,1]][1]
+    location_z=E0*detector_pos[data.iloc[coincidence_index,1]][2]+E1*detector_pos[data.iloc[coincidence_index+1,1]][2]+E2*detector_pos[data.iloc[coincidence_index+2,1]][2]+E3*detector_pos[data.iloc[coincidence_index+3,1]][2]
     location=[location_x/energy,location_y/energy,location_z/energy]
     interaction_locations.append(location)
-
