@@ -1,8 +1,7 @@
 import math
-
 import matplotlib
 import multiprocessing
-import matplotlib.pyplot as plt
+import matplotlib.pylab as plt
 import numpy as np
 import scipy.constants as constants
 from multiprocessing import Pool
@@ -29,7 +28,7 @@ def CalculateScatterAngle(initial_energy, final_energy):
 
 
 class DetectionPair:
-    def __init__(self, scatter_position, absorption_position, initial_energy, absorption_energy, angle):
+    def __init__(self, scatter_position, absorption_position, initial_energy, absorption_energy):
         """
         :param scatter_position: Coordinates of scatter
         :param absorption_position: Coordinates of absorption
@@ -42,7 +41,7 @@ class DetectionPair:
             (np.array(self.scatterPosition) - np.array(self.absorptionPosition)) / np.linalg.norm(
                 np.array(self.scatterPosition) - np.array(self.absorptionPosition)), dtype=np.float64)
         self.absorptionEnergy = np.float64(absorption_energy)
-        self.scatterAngle = angle #CalculateScatterAngle(initial_energy, absorption_energy)
+        self.scatterAngle = CalculateScatterAngle(initial_energy, absorption_energy)
 
 
 def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
@@ -187,18 +186,18 @@ def calculate_voxel_cone_cube(arg):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    #df = pd.read_parquet(
-    #    r'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\dictionarytest')
-    '''for x in range(8):
+    df = pd.read_parquet(
+        r'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\dictionarytest.parquet')
+    for x in range(4):
         row = df.iloc[[x]].to_numpy()[0]
-        pairs.append(DetectionPair(np.array(row[1]) + [40, 40, 40], np.array(row[3]) + [40, 40, 40], 662, row[2]*1000))'''
-    pairs.append(DetectionPair([30, 50, 10], [30, 50, 0], 662, 500, np.arctan(1/2)))
+        pairs.append(DetectionPair(np.array(row[1]) + [40, 40, 40], np.array(row[3]) + [40, 40, 40], 662, row[2]*1000))
+    '''pairs.append(DetectionPair([30, 50, 10], [30, 50, 0], 662, 500, np.arctan(1/2)))
     pairs.append(DetectionPair([80, 50, 10], [80, 50, 0], 662, 500, np.arctan(3/4)))
-    pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))
+    pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    cube_size = 150   # cm
+    cube_size = 100   # cm
     imaging_area = np.array([cube_size, cube_size, cube_size])
-    voxel_length = 0.5 * 10 ** (0)  # units matching cub_size
+    voxel_length = 1 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
 
@@ -220,8 +219,10 @@ if __name__ == '__main__':
     print(np.max(voxel_cube))
     print(np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape), dtype=np.float64)*voxel_length)
 
-    plane = voxel_cube[:, :, int(50/voxel_length)]
-    image1 = plt.imshow(plane, cmap='seismic')
+    plane = voxel_cube[:, :, int(40/voxel_length)]
+    plt.figure(dpi=800)
+    image1 = plt.imshow(plane, cmap=plt.cm.twilight_shifted)
+    plt.colorbar()
     plt.tight_layout()
     plt.show()
 

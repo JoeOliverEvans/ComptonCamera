@@ -25,7 +25,7 @@ ax = fig.add_subplot(projection='3d')
 
 theta_c = (np.pi/8)-0.001
 voxel_length = 1
-R_max = 10
+R_max = 20
 
 
 R = np.arange(0, R_max, voxel_length/2)
@@ -37,27 +37,22 @@ vect2 = [0, 0.001, 1]
 
 Theta_sizes = 2 * np.arcsin((voxel_length/2)/(R*np.sin(theta_c)))
 
-
-for x in range(0, len(Theta_sizes)):
-    if math.isnan(Theta_sizes[x]):
-        Theta_sizes[x] = np.pi
-    else:
-        break
-def lin(a):
-    return np.linspace(0, 2 * np.pi, int(np.abs(2*np.pi//a) + 1))
-thetas = np.apply_along_axis(lin, axis=0, arr=Theta_sizes)
-print(thetas)
+Rot = rotation_matrix(vect1, vect2)
 
 for r in R:
-    Theta_size = 2 * np.arcsin((voxel_length/2)/(r*np.sin(theta_c)))
+    point_per_circle_in_area = False
+    Theta_size = 2 * np.arcsin((voxel_length) / (r * np.sin(theta_c)))
     if math.isnan(Theta_size):
         Theta_size = np.pi
-    Theta = np.linspace(0, 2 * np.pi, int(np.abs(2*np.pi//Theta_size) + 1))
+    Theta = np.linspace(0, 2 * np.pi, 2 * int(np.abs(2 * np.pi // Theta_size) + 1))
     for t in Theta:
-        Rot = rotation_matrix(vect1, vect2)
-        new = Rot.dot([r * np.sin(theta_c) * np.cos(t), r * np.sin(theta_c) * np.sin(t), np.cos(theta_c) * r])
-        point = np.array([*list(new), weight])
+        rotated_point = Rot.dot(
+            [r * np.sin(theta_c) * np.cos(t), r * np.sin(theta_c) * np.sin(t), np.cos(theta_c) * r])
+        point = np.array([*list(rotated_point), weight])
         points = np.row_stack((points, point))
+        point_per_circle_in_area = True
+    if not point_per_circle_in_area:
+        break
 
 points = np.delete(points, 0, axis=0)
 
