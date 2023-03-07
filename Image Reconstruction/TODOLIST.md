@@ -7,4 +7,4 @@ Things to do:
 - [x] Explore 2d slice e.g. voxel_cube[40, :, :] and create heatmap (should be easy) maybe use matplotlib plt.imshow() - talk to joe
 - [ ] Extension to previous, erosion and dilation and cutoffs for min intercepts
 - [ ] Equation for scatter angle from energy in scatter detector and energy in absorber, rather than just absorber and initial energy (662KeV)
-- [ ] 
+- [ ] Adapt code to do cones that start outside the imaging area
