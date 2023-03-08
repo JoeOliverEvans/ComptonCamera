@@ -37,7 +37,7 @@ def ap_vect(r_abs, r_scatter): #vector form cone apex
     n_x = x_vect/(np.sqrt(x_vect**2 + y_vect**2 + z_vect**2))
     n_y = y_vect/(np.sqrt(x_vect**2 + y_vect**2 + z_vect**2))
     n_z = z_vect/(np.sqrt(x_vect**2 + y_vect**2 + z_vect**2))
-    return (n_x, n_y, n_z)
+    return (-n_x, -n_y, -n_z)
 
 def ax_ap_vect(r_abs, r_scatter): #angle between vector from cone apex and z
     x_vect = r_abs[0] - r_scatter[0]
@@ -75,9 +75,13 @@ def conic(r_abs, r_scatter, ap_vect, scattering_angle, z_p, x_vals): #defines a 
     #         return y1, y2
     # return None
     y1 = (-b + np.sqrt(((b ** 2) - (4 * (a) * c)))) / (2 * (a))
+    y1_ = y1[~np.isnan(y1)]
     y2 = (-b - np.sqrt(((b ** 2) - (4 * (a) * c)))) / (2 * (a))
+    y2_ = y2[~np.isnan(y2)]
+    x_vals_ = x[~np.isnan(y1)]
     # if b^2 - 4ac <0 we can't have it, if = 0 edge intersection?? if >0 this is what we're looking for
-    return y1, y2
+    
+    return y1_, y2_, x_vals_
 
 # def floor_div(var, seg):
 #     var_idx = var//seg
@@ -85,25 +89,31 @@ def conic(r_abs, r_scatter, ap_vect, scattering_angle, z_p, x_vals): #defines a 
     
 
 
-z_p = 20 #estimated plane position, don't really know what I'm supposed to do with this
+z_p = 0 #where the z-plane of the source is supposed to be #estimated plane position, don't really know what I'm supposed to do with this
 #scatter and absorbtion positions
-r_abs1 = np.array([10, 10, 0])
-r_scatter1 = np.array([5, 5, 10])
-E_i = 662*(1.6*10**(-13))
-E_f = 400*(1.6*10**(-13))
-r_abs2 = np.array([10, 0, 0])
-r_scatter2 = np.array([2, 6, 10])
-E_i = 662*(1.6*10**(-13))
-E_f2 = 430*(1.6*10**(-13))
+r_abs1 = np.array([0, -10, 80])
+r_scatter1 = np.array([10, 10, 20])
+E_i1 = 260.474*(1.6*10**(-13))
+E_f1 = 401.526*(1.6*10**(-13))
+r_abs2 = np.array([0, 10, 80])
+r_scatter2 = np.array([10, 10, 20])
+E_i2 = 123.05*(1.6*10**(-13))
+E_f2 = 538.95*(1.6*10**(-13))
+r_abs3 = np.array([10, 0, 80])
+r_scatter3 = np.array([-10, -10, 20])
+E_i3 = 170.378*(1.6*10**(-13))
+E_f3 = 492.622*(1.6*10**(-13))
 x = x_vals(-100, 100, 0.001)
 
-y1, y2 = conic(r_abs1, r_scatter1, ap_vect(r_abs1, r_scatter1), scattering_angle(E_i, E_f), z_p, x)
-y3, y4 = conic(r_abs2, r_scatter2, ap_vect(r_abs2, r_scatter2), scattering_angle(E_i, E_f2), z_p, x)
-# y3, y4 = ellipse(0, 0, 0, nx2, ny2, nz2, np.pi/20, z_p, x)
-# y5, y6 = ellipse(0, 0, 0, nx3, ny3, nz3, np.pi/20, z_p, x)
 
-#array of zeroes
-zero = np.zeros(500)
+
+y1, y2, x2 = conic(r_abs1, r_scatter1, ap_vect(r_abs1, r_scatter1), scattering_angle(E_f1, E_i1), z_p, x)
+y3, y4, x3 = conic(r_abs2, r_scatter2, ap_vect(r_abs2, r_scatter2), scattering_angle(E_f2, E_i2), z_p, x)
+y5, y6, x4 = conic(r_abs3, r_scatter3, ap_vect(r_abs3, r_scatter3), scattering_angle(E_f3, E_i3), z_p, x)
+
+
+# #array of zeroes
+# zero = np.zeros(500)
 
 # A = np.dstack([x, y1])
 # print(A)
@@ -121,10 +131,14 @@ zero = np.zeros(500)
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-ax.plot(x, y1,  color='blue', alpha=0.9)
-ax.plot(x, y2, color='red', alpha=0.9)
-ax.plot(x, y3, color='blue', alpha=0.9)
-ax.plot(x, y4, color='red', alpha=0.9)
+ax.plot(x2, y1,  color='blue', alpha=0.9)
+ax.plot(x2, y2, color='blue', alpha=0.9)
+ax.plot(x3, y3, color='red', alpha=0.9)
+ax.plot(x3, y4, color='red', alpha=0.9)
+ax.plot(x4, y5, color='green', alpha=0.9)
+ax.plot(x4, y6, color='green', alpha=0.9)
+ax.set_xlabel('x')
+ax.set_ylabel('y')
 # ax.plot(x3, y3)
 # ax.grid(xgrid, ygrid)
 # ax.plot(A)
@@ -132,8 +146,8 @@ ax.plot(x, y4, color='red', alpha=0.9)
 # ax.plot(x_idx, y4_idx, color='red', alpha=0.9)
 # ax.plot(x_idx, y5_idx, color='blue', alpha=0.9)
 # ax.plot(x_idx, y6_idx, color='red', alpha=0.9)
-# ax.set_xlim(-10, 10)
-# ax.set_ylim(-10, 10)
+# ax.set_xlim(-50, 50)
+# ax.set_ylim(-50, 50)
 # ax.set_aspect('equal', adjustable='box')
 plt.grid()
 
@@ -156,13 +170,22 @@ def plot_conics(calculate_conics, x):
         
     
 ##histogram plots for heat map intersections
+# xedges = np.linspace(min(x2), max(x2))
+# yedges = np.linspace(min(y2), max(y2))
+def hist(x, y):
+    xedges = np.linspace(min(x), max(x))
+    yedges = np.linspace(min(y), max(y))
+    n, x_edges, y_edges = np.histogram2d(x, y, bins=(xedges, yedges))
+    return n
+h1 = hist(x2, y1)
+h2 = hist(x2, y2)
+# h3 = hist(x3, y3)
+# h4 = hist(x3, y4)
+h = h1 + h2 #+ h3 + h4
 
-# def hist(x, y, bins):
-#     n, x_edges, y_edges = np.histogram2d(x, y, bins)
-#     return n
-
-# print(hist(np.isfinite(x), np.isfinite(y1), 20))
-
+fig2 = plt.figure()
+ax1 = fig2.add_subplot(111)
+ax1.imshow(h.T)
 # n, xedges, yedges = np.histogram2d(np.isfinite(x), np.isfinite(y1), 20)
 # n2, xedges2, yedges2 = np.histogram2d(np.isfinite(x), np.isfinite(y2), 20)
 
