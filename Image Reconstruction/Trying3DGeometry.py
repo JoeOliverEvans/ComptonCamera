@@ -17,18 +17,18 @@ warnings.filterwarnings("ignore", message="invalid value encountered in arcsin")
 electron_mass = (constants.electron_mass * constants.c ** 2) / (constants.electron_volt * 10 ** 3)  # in keV
 
 
-def CalculateScatterAngle(initial_energy, final_energy):
+def CalculateScatterAngle(initial_energy, scatter_energy_deposited):
     """
     :param final_energy: keV
     :param initial_energy: keV
     :return: Compton Scattering Angle in radians
     """
     return np.arccos(
-        1 - (electron_mass * ((initial_energy - final_energy) / (initial_energy * final_energy))))
+        1 - (1/(((electron_mass-scatter_energy_deposited)/initial_energy)*(1+(initial_energy/electron_mass)))))
 
 
 class DetectionPair:
-    def __init__(self, scatter_position, absorption_position, initial_energy, absorption_energy):
+    def __init__(self, scatter_position, absorption_position, initial_energy, scatter_energy):
         """
         :param scatter_position: Coordinates of scatter
         :param absorption_position: Coordinates of absorption
@@ -40,8 +40,8 @@ class DetectionPair:
         self.lineVector = np.array(
             (np.array(self.scatterPosition) - np.array(self.absorptionPosition)) / np.linalg.norm(
                 np.array(self.scatterPosition) - np.array(self.absorptionPosition)), dtype=np.float64)
-        self.absorptionEnergy = np.float64(absorption_energy)
-        self.scatterAngle = CalculateScatterAngle(initial_energy, absorption_energy)
+        self.scatterEnergy = np.float64(scatter_energy)
+        self.scatterAngle = CalculateScatterAngle(initial_energy, scatter_energy)
 
 
 def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
@@ -82,19 +82,21 @@ def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
 def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersections=-1):
     if min_intersections == -1:
         min_intersections = np.max(voxel_cube_maya)
-    max_intersections_arguments = np.array(np.argwhere(voxel_cube > 0))
+    max_intersections_arguments = np.array(np.argwhere(voxel_cube_maya == np.max(voxel_cube_maya)))
+    print(max_intersections_arguments)
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
+
     # np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
     mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
                   color=(0, 1, 0), scale_mode='none', scale_factor=voxel_length)
-    '''max_intersections_arguments = np.array(np.argwhere(voxel_cube >= np.max(voxel_cube_maya) - 1))
+    max_intersections_arguments = np.array(np.argwhere(voxel_cube_maya >= np.max(voxel_cube_maya) - 2))
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
     #np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
-    mlab.points3d(c*voxel_length, v*voxel_length, b*voxel_length, voxel_cube[c, v, b], mode='cube', scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')'''
+    mlab.points3d(c*voxel_length, v*voxel_length, b*voxel_length, voxel_cube[c, v, b], mode='cube', scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')
     mlab.axes(xlabel='x', ylabel='y', zlabel='z', extent=(0, imaging_area[0], 0, imaging_area[1], 0, imaging_area[2]), nb_labels=8)
     mlab.show()
 
@@ -140,11 +142,11 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
             R_max = magnitude'''
     R_max = np.linalg.norm(imaging_area)
     R = np.arange(0, R_max, voxel_length / 2)
-    points = np.array([1, 1, 1, 1])  # Creates arroy with the right shape
+    points = []  # Creates arroy with the right shape
     weight = 1  # will be changed for Amber's uncertainty
 
     Rot = rotation_matrix(vect1, vect2)
-
+    counter = 0
     for r in R:
         point_per_circle_in_area = False
         Theta_size = 2 * np.arcsin((voxel_length) / (r * np.sin(theta_c)))
@@ -157,13 +159,13 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
             rotated_translated_point = rotated_point + pair_of_detections.scatterPosition
             if 0 <= rotated_translated_point[0] < imaging_area[0] and 0 <= rotated_translated_point[1] < imaging_area[1]\
                     and 0 <= rotated_translated_point[2] < imaging_area[2]:
-                point = np.array([*list(rotated_translated_point), weight])
-                points = np.row_stack((points, point))
+                points.append(rotated_translated_point)
+                counter += 1
                 point_per_circle_in_area = True
         if not point_per_circle_in_area:
             break
 
-    points = np.delete(points, 0, axis=0)   # Removes initial array
+    points = np.reshape(points, (counter, 3))
     return points
 
 
@@ -179,7 +181,7 @@ def calculate_voxel_cone_cube(arg):
     for point in cone_points_with_weighting:    # Fill matrix with weighting at correct points
         voxel_cube_cone[int(point[0] // voxel_length),
                         int(point[1] // voxel_length),
-                        int(point[2] // voxel_length)] = point[3]
+                        int(point[2] // voxel_length)] = 1
     return voxel_cube_cone
 
 
@@ -187,17 +189,18 @@ if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
     df = pd.read_parquet(
-        r'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\dictionarytest.parquet')
-    for x in range(4):
+        r'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\experimentalscatterscatter.parquet')
+    print(len(df))
+    print(df.head())
+    for x in range(5000):
         row = df.iloc[[x]].to_numpy()[0]
-        pairs.append(DetectionPair(np.array(row[1]) + [40, 40, 40], np.array(row[3]) + [40, 40, 40], 662, row[2]*1000))
-    '''pairs.append(DetectionPair([30, 50, 10], [30, 50, 0], 662, 500, np.arctan(1/2)))
-    pairs.append(DetectionPair([80, 50, 10], [80, 50, 0], 662, 500, np.arctan(3/4)))
+        pairs.append(DetectionPair(np.array(row[1]) + [40, 40, 40], np.array(row[3]) + [40, 40, 40], 662, row[0]*1000))
+    #pairs.append(DetectionPair([30, 50, 10], [30, 50, 0], 662, 500, np.arctan(1/2)))
+    '''pairs.append(DetectionPair([80, 50, 10], [80, 50, 0], 662, 500, np.arctan(3/4)))
     pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    cube_size = 100   # cm
-    imaging_area = np.array([cube_size, cube_size, cube_size])
-    voxel_length = 1 * 10 ** (0)  # units matching cub_size
+    imaging_area = np.array([60, 60, 130])
+    voxel_length = 0.5 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
 
@@ -215,16 +218,25 @@ if __name__ == '__main__':
                 voxel_cube += x  # Add together results from workers as they arrive, if at the end numpy gets upset
             del args
         pbar.close()
-    print(voxel_cube[20,20,20])
-    print(np.max(voxel_cube))
-    print(np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape), dtype=np.float64)*voxel_length)
+    #print(voxel_cube[19, 14, 57])
+    #print(voxel_cube[40, 40, 40])
+    cut_cube = voxel_cube[:, :, :]
+    print(np.max(cut_cube))
+    print(np.shape(cut_cube))
+    print(np.array(np.unravel_index(np.argmax(cut_cube), cut_cube.shape), dtype=np.float64)*voxel_length)
 
     plane = voxel_cube[:, :, int(40/voxel_length)]
-    plt.figure(dpi=800)
-    image1 = plt.imshow(plane, cmap=plt.cm.twilight_shifted)
+
+    plt.figure(dpi=600)
+    image1 = plt.imshow(plane, cmap='rainbow')
+    maxpoint = np.unravel_index(np.argmax(plane), plane.shape)
+    print(maxpoint)
+    plt.tick_params(bottom=False, labelbottom=False, top=True, labeltop=True)
     plt.colorbar()
+    #plt.scatter(maxpoint[1], maxpoint[0], color='green')
     plt.tight_layout()
+    plt.savefig('2d_reconstruction_save.png')
     plt.show()
 
     # plot_3d(view_only_intersections=True)
-    mayavi_plot_3d(voxel_cube, view_only_intersections=True)
+    mayavi_plot_3d(voxel_cube[:, :, :int(45/voxel_length)], view_only_intersections=True)
