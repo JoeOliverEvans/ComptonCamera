@@ -133,15 +133,18 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
 
     """find the max value of R, room for great improvement"""
     '''R_max = 0
-    edge_points = [[0, 0, 0], [imaging_area[0], 0, 0], [0, imaging_area[1], 0], [imaging_area[0], imaging_area[1], 0],
-                   [0, 0, imaging_area[2]], [imaging_area[0], 0, imaging_area[2]],
-                   [0, imaging_area[1], imaging_area[2]], [imaging_area[0], imaging_area[1], imaging_area[2]]]
     for edge_point in edge_points:
         magnitude = np.linalg.norm(edge_point - pair_of_detections.scatterPosition)
         if magnitude > R_max:
             R_max = magnitude'''
     R_max = np.linalg.norm(imaging_area)
-    R = np.arange(0, R_max, voxel_length / 2)
+    R_min = R_max
+    if 0 <= pair_of_detections.scatterPosition[0] < imaging_area[0] and 0 <= pair_of_detections.scatterPosition[1] < imaging_area[1]\
+                    and 0 <= pair_of_detections.scatterPosition[2] < imaging_area[2]:
+        R_min = 0
+    else:
+        R_min = abs(pair_of_detections.scatterPosition[2] - imaging_area[2])
+    R = np.arange(R_min, R_max, voxel_length / 2)
     points = []  # Creates arroy with the right shape
     weight = 1  # will be changed for Amber's uncertainty
 
@@ -162,7 +165,7 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
                 points.append(rotated_translated_point)
                 counter += 1
                 point_per_circle_in_area = True
-        if not point_per_circle_in_area:
+        if not point_per_circle_in_area and len(points) > 0:
             break
 
     points = np.reshape(points, (counter, 3))
@@ -189,17 +192,17 @@ if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
     df = pd.read_parquet(
-        r'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\experimentalscatterscatter.parquet')
+        r'experimentalscatterscatter.parquet')
     print(len(df))
     print(df.head())
-    for x in range(5000):
+    for x in range(1000):
         row = df.iloc[[x]].to_numpy()[0]
-        pairs.append(DetectionPair(np.array(row[1]) + [40, 40, 40], np.array(row[3]) + [40, 40, 40], 662, row[0]*1000))
+        pairs.append(DetectionPair(np.array(row[1]) + [40, 40, 20], np.array(row[3]) + [40, 40, 20], 662, row[0]*1000))
     #pairs.append(DetectionPair([30, 50, 10], [30, 50, 0], 662, 500, np.arctan(1/2)))
     '''pairs.append(DetectionPair([80, 50, 10], [80, 50, 0], 662, 500, np.arctan(3/4)))
     pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([60, 60, 130])
+    imaging_area = np.array([60, 60, 40])
     voxel_length = 0.5 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
@@ -225,7 +228,7 @@ if __name__ == '__main__':
     print(np.shape(cut_cube))
     print(np.array(np.unravel_index(np.argmax(cut_cube), cut_cube.shape), dtype=np.float64)*voxel_length)
 
-    plane = voxel_cube[:, :, int(40/voxel_length)]
+    plane = voxel_cube[:, :, int(20/voxel_length)]
 
     plt.figure(dpi=600)
     image1 = plt.imshow(plane, cmap='rainbow')
