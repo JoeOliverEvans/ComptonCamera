@@ -1,3 +1,4 @@
+from datetime import datetime
 import math
 import matplotlib
 import multiprocessing
@@ -188,6 +189,31 @@ def calculate_voxel_cone_cube(arg):
     return voxel_cube_cone
 
 
+def save_matrix(voxelcube):
+    arr_reshaped = voxelcube.reshape(voxelcube.shape[0], -1)
+
+    # saving array
+    timeanddate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
+    np.savetxt(f"SavedVoxelCubes/{timeanddate}+{np.shape(voxelcube)}.txt", arr_reshaped)
+
+    # get file data
+    loaded_arr = np.loadtxt(f"SavedVoxelCubes/{timeanddate}+{np.shape(voxelcube)}.txt")
+
+    # This is a 2D array - need to convert it to the original
+    load_original_arr = loaded_arr.reshape(
+        loaded_arr.shape[0], loaded_arr.shape[1] // voxelcube.shape[2], voxelcube.shape[2])
+
+    # check
+    print("shape of arr: ", voxelcube.shape)
+    print("shape of load_original_arr: ", load_original_arr.shape)
+
+    # check if both arrays are same or not:
+    if (load_original_arr == voxelcube).all():
+        print("Yes, both the arrays are same")
+    else:
+        print("No, both the arrays are not same")
+    return
+
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
@@ -195,15 +221,16 @@ if __name__ == '__main__':
         r'experimentalscatterscatter.parquet')
     print(len(df))
     print(df.head())
-    for x in range(1000):
+    for x in range(10):
         row = df.iloc[[x]].to_numpy()[0]
-        pairs.append(DetectionPair(np.array(row[1]) + [40, 40, 20], np.array(row[3]) + [40, 40, 20], 662, row[0]*1000))
+        pairs.append(DetectionPair(np.array(row[1]) + [40, 40, 5], np.array(row[3]) + [40, 40, 5], 662, row[0]*1000))
     #pairs.append(DetectionPair([30, 50, 10], [30, 50, 0], 662, 500, np.arctan(1/2)))
+    print(pairs[0].scatterPosition)
     '''pairs.append(DetectionPair([80, 50, 10], [80, 50, 0], 662, 500, np.arctan(3/4)))
     pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([60, 60, 40])
-    voxel_length = 0.5 * 10 ** (0)  # units matching cub_size
+    imaging_area = np.array([40, 40, 10])
+    voxel_length = 2 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
 
@@ -228,7 +255,7 @@ if __name__ == '__main__':
     print(np.shape(cut_cube))
     print(np.array(np.unravel_index(np.argmax(cut_cube), cut_cube.shape), dtype=np.float64)*voxel_length)
 
-    plane = voxel_cube[:, :, int(20/voxel_length)]
+    plane = voxel_cube[:, :, int(5/voxel_length)]
 
     plt.figure(dpi=600)
     image1 = plt.imshow(plane, cmap='rainbow')
@@ -238,8 +265,10 @@ if __name__ == '__main__':
     plt.colorbar()
     #plt.scatter(maxpoint[1], maxpoint[0], color='green')
     plt.tight_layout()
-    plt.savefig('2d_reconstruction_save.png')
+    plt.savefig('Plots/2d_reconstruction_save.png')
     plt.show()
 
+    save_matrix(voxel_cube)
+
     # plot_3d(view_only_intersections=True)
-    mayavi_plot_3d(voxel_cube[:, :, :int(45/voxel_length)], view_only_intersections=True)
+    mayavi_plot_3d(voxel_cube[:, :, :], view_only_intersections=True)
