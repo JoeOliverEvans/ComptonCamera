@@ -5,19 +5,28 @@ Created on Tue Feb 21 14:24:47 2023
 
 @author: nate
 """
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Feb 21 14:24:47 2023
+
+@author: nate
+"""
 
 
 import pandas as pd
 import numpy as np
 import scipy.constants as constants
+from datetime import datetime
 
-data=pd.read_csv(r'/Users/nate/Downloads/mcresults_171555.csv', delimiter=';', header=0) #download the file and put the path here
-
+data=pd.read_csv(r'/Users/nate/Downloads/positiondata', delimiter=';', header=0) #download the file and put the path here
+data=data.sort_values(by=['timetag'])
 tol=1 #coincidence window in picoseconds/monte carlo timestamp units
 coincidences_index=[] #stores the index of coincidences
-detector_number=4 #number of detectors
+detector_number=8 #number of detectors
 source=np.array([0,0,0])
-detector_pos=[np.array([-16.2,8.1,20]),np.array([16.2,8.1,20]),np.array([-16.2,-8.1,20]),np.array([16.2,-8.1,20]),np.array([0,10,100]),np.array([-10,0,100]),np.array([0,-10,100]),np.array([10,0,100])]
+detector_pos=[np.array([-10,10,20]),np.array([10,10,20]),np.array([-10,-10,20]),np.array([10,-10,20]),np.array([0,10,80]),np.array([-10,0,80]),np.array([0,-10,80]),np.array([10,0,80])]
+
 m=-400 #bad angle
 
 angles=[]
@@ -38,7 +47,7 @@ for i in detector_pos:
 min_angles=list(np.asarray(angles)-0.4) #matrix of minimum angles to go from one detector to the other in radians
 max_angles=list(np.asarray(angles)+0.4) #matrix of maxiumum angles to go from one detector to the other in radians
 Ei=0.662 #initial energy in MeV
-gap=0.01 #tolerance for absorption in MeV
+gap=0.03 #tolerance for absorption in MeV
 
 
 for i in range(len(data.iloc[:,2])-1): #for all the data points
@@ -54,7 +63,7 @@ scatters_energies=[] #energies of scatters followed by scatters
 scatters_locations=[] #locations of scatters followed by scatters
 scatter2_energies=[] #energies of second scatters
 scatter2_locations=[] #locations of second scatters
-lost=[]
+lost=[] #coincidences that couldn't be sorted
 
 electron_mass = (constants.electron_mass * constants.c ** 2)/ (constants.electron_volt * 10 ** 6)  # in MeV
 
@@ -70,8 +79,8 @@ def CalculateScatterAngle(initial_energy, final_energy):
     else: #if arccos not calculatable then impossible angle
         return(2*m)
     
-cal_grad=[1,1,1,1] #list of gradients of the calibration for each detector
-cal_intercept=[0,0,0,0] #list of intercepts of the calibration for each detector
+cal_grad=[1,1,1,1,1,1,1,1] #list of gradients of the calibration for each detector
+cal_intercept=[0,0,0,0,0,0,0,0] #list of intercepts of the calibration for each detector
               
 for index_index, coincidence_index in enumerate(coincidences_index): #for all the coincidences
     for i in range(detector_number):
@@ -107,14 +116,23 @@ for index_index, coincidence_index in enumerate(coincidences_index): #for all th
                     else:
                         lost.append(coincidence_index)
                         
-
+timedate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
 # dictionary of lists  
-dict = {'scatter energy': scattera_energies, 'scatter locations': scattera_locations, 'absorption energies': absorption_energies, 'absorption locations': absorption_locations}  
+dict = {'scatter energy': scattera_energies, 'scatter locations': scattera_locations, 'absorption energies': absorption_energies, 'absorption locations': absorption_locations}    
        
 df = pd.DataFrame(dict) 
     
 # saving the dataframe 
-df.to_csv('dictionarytest.csv')
+df.to_csv(f'mcabsorptionscatter{timedate}.csv')
+df.to_parquet(f'mcabsorptionscatter{timedate}.parquet')
 
+# dictionary of lists  
+dict = {'scatter energy': scatters_energies, 'scatter locations': scatters_locations, 'absorption energies': scatter2_energies, 'absorption locations': scatter2_locations}    
+       
+df = pd.DataFrame(dict) 
+    
+# saving the dataframe 
+df.to_csv(f'mcscattercatter{timedate}.csv')
+df.to_parquet(f'mcscatterscatter{timedate}.parquet')
                         
                         
