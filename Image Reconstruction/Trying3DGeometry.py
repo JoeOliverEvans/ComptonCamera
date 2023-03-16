@@ -91,13 +91,13 @@ def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersecti
     # np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
     mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
                   color=(0, 1, 0), scale_mode='none', scale_factor=voxel_length)
-    max_intersections_arguments = np.array(np.argwhere(voxel_cube_maya >= np.max(voxel_cube_maya) - 2))
+    '''max_intersections_arguments = np.array(np.argwhere(voxel_cube_maya >= np.max(voxel_cube_maya) - 2))
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
     # np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
     mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
-                  scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')
+                  scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')'''
     mlab.axes(xlabel='x', ylabel='y', zlabel='z', extent=(0, imaging_area[0], 0, imaging_area[1], 0, imaging_area[2]),
               nb_labels=8)
     mlab.show()
@@ -221,11 +221,11 @@ if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
     df = pd.read_parquet(
-        r'mcscatterscatter16-03-2023 17-00-24.parquet')
+        r'mcabsorptionscatter16-03-2023 17-00-24.parquet')
 
     print(len(df))
     print(df.head())
-    for x in range(1000):
+    for x in range(13000):
         row = df.iloc[[x]].to_numpy()[0]
         pairs.append(
            DetectionPair(np.array(row[1]) + [20, 20, 5], np.array(row[3]) + [20, 20, 5], 662, row[0] * 1000))
@@ -238,7 +238,7 @@ if __name__ == '__main__':
     print(pairs[0].scatterAngle)
     '''pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([60, 60, 30])
+    imaging_area = np.array([60, 60, 8])
     voxel_length = 1 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
