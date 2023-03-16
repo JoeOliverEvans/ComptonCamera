@@ -218,19 +218,19 @@ if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
     df = pd.read_parquet(
-        r'experimentalscatterscatter.parquet')
+        r'dataprocessed (1)')
     print(len(df))
     print(df.head())
-    for x in range(10):
+    for x in range(12):
         row = df.iloc[[x]].to_numpy()[0]
-        pairs.append(DetectionPair(np.array(row[1]) + [40, 40, 5], np.array(row[3]) + [40, 40, 5], 662, row[0]*1000))
+        pairs.append(DetectionPair(np.array(row[1])/10 + [40, 40, 5], np.array(row[3])/10 + [40, 40, 5], 662, row[0]*1000))
     #pairs.append(DetectionPair([30, 50, 10], [30, 50, 0], 662, 500, np.arctan(1/2)))
     print(pairs[0].scatterPosition)
     '''pairs.append(DetectionPair([80, 50, 10], [80, 50, 0], 662, 500, np.arctan(3/4)))
     pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([40, 40, 10])
-    voxel_length = 2 * 10 ** (0)  # units matching cub_size
+    imaging_area = np.array([60, 60, 10])
+    voxel_length = 0.5 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
 
@@ -265,7 +265,8 @@ if __name__ == '__main__':
     plt.colorbar()
     #plt.scatter(maxpoint[1], maxpoint[0], color='green')
     plt.tight_layout()
-    plt.savefig('Plots/2d_reconstruction_save.png')
+    timedate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
+    plt.savefig(f'Plots/2d_reconstruction_save{timedate}.png')
     plt.show()
 
     save_matrix(voxel_cube)
