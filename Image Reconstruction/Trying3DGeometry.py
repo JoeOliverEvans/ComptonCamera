@@ -24,8 +24,7 @@ def CalculateScatterAngle(initial_energy, scatter_energy_deposited):
     :return: Compton Scattering Angle in radians
     """
     return np.arccos(
-        1 - (1 / (((electron_mass - scatter_energy_deposited) / initial_energy) * (
-                    1 + (initial_energy / electron_mass)))))
+        1 - ((1/(initial_energy-scatter_energy_deposited)) - 1/initial_energy) * electron_mass)
 
 
 class DetectionPair:
@@ -222,20 +221,25 @@ if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
     df = pd.read_parquet(
-        r'Data/dictionarytest+16-03-2023 15-16-48')
+        r'mcscatterscatter16-03-2023 17-00-24.parquet')
+
     print(len(df))
     print(df.head())
-    for x in range(5729):
+    for x in range(1000):
         row = df.iloc[[x]].to_numpy()[0]
         pairs.append(
-            DetectionPair(np.array(row[1]) + [20, 20, 5], np.array(row[3]) + [20, 20, 5], 662, row[0] * 1000))
+           DetectionPair(np.array(row[1]) + [20, 20, 5], np.array(row[3]) + [20, 20, 5], 662, row[0] * 1000))
     # pairs.append(DetectionPair([30, 50, 10], [30, 50, 0], 662, 500, np.arctan(1/2)))
+    #print(pairs[0].scatterPosition)
+    #pairs.append(DetectionPair([24.5, 24.5, 46], [20, 6.5, 89], 662, 177))
     print(pairs[0].scatterPosition)
-    '''pairs.append(DetectionPair([80, 50, 10], [80, 50, 0], 662, 500, np.arctan(3/4)))
-    pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
+    print(pairs[0].absorptionPosition)
+    print(pairs[0].lineVector)
+    print(pairs[0].scatterAngle)
+    '''pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([40, 40, 30])
-    voxel_length = 0.25 * 10 ** (0)  # units matching cub_size
+    imaging_area = np.array([60, 60, 30])
+    voxel_length = 1 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
 
