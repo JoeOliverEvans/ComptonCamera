@@ -11,7 +11,6 @@ import pandas as pd
 from mayavi import mlab
 import warnings
 
-
 warnings.filterwarnings("ignore", message="divide by zero encountered in double_scalars")
 warnings.filterwarnings("ignore", message="invalid value encountered in arcsin")
 
@@ -25,7 +24,8 @@ def CalculateScatterAngle(initial_energy, scatter_energy_deposited):
     :return: Compton Scattering Angle in radians
     """
     return np.arccos(
-        1 - (1/(((electron_mass-scatter_energy_deposited)/initial_energy)*(1+(initial_energy/electron_mass)))))
+        1 - (1 / (((electron_mass - scatter_energy_deposited) / initial_energy) * (
+                    1 + (initial_energy / electron_mass)))))
 
 
 class DetectionPair:
@@ -84,7 +84,7 @@ def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersecti
     if min_intersections == -1:
         min_intersections = np.max(voxel_cube_maya)
     max_intersections_arguments = np.array(np.argwhere(voxel_cube_maya == np.max(voxel_cube_maya)))
-    print(max_intersections_arguments)
+    print(max_intersections_arguments * voxel_length)
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
@@ -96,9 +96,11 @@ def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersecti
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
-    #np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
-    mlab.points3d(c*voxel_length, v*voxel_length, b*voxel_length, voxel_cube[c, v, b], mode='cube', scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')
-    mlab.axes(xlabel='x', ylabel='y', zlabel='z', extent=(0, imaging_area[0], 0, imaging_area[1], 0, imaging_area[2]), nb_labels=8)
+    # np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
+    mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
+                  scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')
+    mlab.axes(xlabel='x', ylabel='y', zlabel='z', extent=(0, imaging_area[0], 0, imaging_area[1], 0, imaging_area[2]),
+              nb_labels=8)
     mlab.show()
 
 
@@ -109,7 +111,7 @@ def rotation_matrix(vec1, vec2):
     :param vec2: vector of the cone vector
     :return rotation_matrix: 3x3 matrix
     """
-    if vec1 == list(vec2/np.linalg.norm(vec2)):
+    if vec1 == list(vec2 / np.linalg.norm(vec2)):
         return np.eye(3)
     a, b = (vec1 / np.linalg.norm(vec1)).reshape(3), (vec2 / np.linalg.norm(vec2)).reshape(3)
     v = np.cross(a, b)
@@ -127,8 +129,8 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
     :param pair_of_detections: Detection Pair object
     :return translated_rotated_points list containing 4 vectors, forth value is a weighting for uncertainty
     """
-    vect1 = [0, 0, 1]   # z axis vector, tje cone points here by default
-    vect2 = pair_of_detections.lineVector   # Vector to rotate cone axis to
+    vect1 = [0, 0, 1]  # z axis vector, tje cone points here by default
+    vect2 = pair_of_detections.lineVector  # Vector to rotate cone axis to
 
     theta_c = pair_of_detections.scatterAngle
 
@@ -140,8 +142,9 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
             R_max = magnitude'''
     R_max = np.linalg.norm(imaging_area)
     R_min = R_max
-    if 0 <= pair_of_detections.scatterPosition[0] < imaging_area[0] and 0 <= pair_of_detections.scatterPosition[1] < imaging_area[1]\
-                    and 0 <= pair_of_detections.scatterPosition[2] < imaging_area[2]:
+    if 0 <= pair_of_detections.scatterPosition[0] < imaging_area[0] and 0 <= pair_of_detections.scatterPosition[1] < \
+            imaging_area[1] \
+            and 0 <= pair_of_detections.scatterPosition[2] < imaging_area[2]:
         R_min = 0
     else:
         R_min = abs(pair_of_detections.scatterPosition[2] - imaging_area[2])
@@ -161,7 +164,7 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
             rotated_point = Rot.dot(
                 [r * np.sin(theta_c) * np.cos(t), r * np.sin(theta_c) * np.sin(t), np.cos(theta_c) * r])
             rotated_translated_point = rotated_point + pair_of_detections.scatterPosition
-            if 0 <= rotated_translated_point[0] < imaging_area[0] and 0 <= rotated_translated_point[1] < imaging_area[1]\
+            if 0 <= rotated_translated_point[0] < imaging_area[0] and 0 <= rotated_translated_point[1] < imaging_area[1] \
                     and 0 <= rotated_translated_point[2] < imaging_area[2]:
                 points.append(rotated_translated_point)
                 counter += 1
@@ -182,7 +185,7 @@ def calculate_voxel_cone_cube(arg):
     imaging_area, voxel_length, voxels_per_side, pair_of_detections = arg[0], arg[1], arg[2], arg[3]
     cone_points_with_weighting = calculate_cone_polars(imaging_area, pair_of_detections, voxel_length)
     voxel_cube_cone = np.zeros((voxels_per_side[0], voxels_per_side[1], voxels_per_side[2]), dtype=int)
-    for point in cone_points_with_weighting:    # Fill matrix with weighting at correct points
+    for point in cone_points_with_weighting:  # Fill matrix with weighting at correct points
         voxel_cube_cone[int(point[0] // voxel_length),
                         int(point[1] // voxel_length),
                         int(point[2] // voxel_length)] = 1
@@ -214,27 +217,29 @@ def save_matrix(voxelcube):
         print("No, both the arrays are not same")
     return
 
+
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
     df = pd.read_parquet(
-        r'dataprocessed (1)')
+        r'Data/dictionarytest+16-03-2023 15-16-48')
     print(len(df))
     print(df.head())
-    for x in range(12):
+    for x in range(5729):
         row = df.iloc[[x]].to_numpy()[0]
-        pairs.append(DetectionPair(np.array(row[1])/10 + [40, 40, 5], np.array(row[3])/10 + [40, 40, 5], 662, row[0]*1000))
-    #pairs.append(DetectionPair([30, 50, 10], [30, 50, 0], 662, 500, np.arctan(1/2)))
+        pairs.append(
+            DetectionPair(np.array(row[1]) + [20, 20, 5], np.array(row[3]) + [20, 20, 5], 662, row[0] * 1000))
+    # pairs.append(DetectionPair([30, 50, 10], [30, 50, 0], 662, 500, np.arctan(1/2)))
     print(pairs[0].scatterPosition)
     '''pairs.append(DetectionPair([80, 50, 10], [80, 50, 0], 662, 500, np.arctan(3/4)))
     pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([60, 60, 10])
-    voxel_length = 0.5 * 10 ** (0)  # units matching cub_size
+    imaging_area = np.array([40, 40, 30])
+    voxel_length = 0.25 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
 
-    pairs_grouped = np.array_split(pairs, (len(pairs) // 25) + 1)   # Split pairs list to save RAM, may be redundant
+    pairs_grouped = np.array_split(pairs, (len(pairs) // 25) + 1)  # Split pairs list to save RAM, may be redundant
 
     """setup of the pool which allows multiple instances of python execute functions (uses all CPU cores)"""
     with Pool(multiprocessing.cpu_count()) as p:
@@ -242,20 +247,20 @@ if __name__ == '__main__':
         for cone_group in pairs_grouped:
             args = [(imaging_area, voxel_length, voxels_per_side, cone_group[i]) for i in
                     range(len(cone_group))]
-            for x in p.imap_unordered(calculate_voxel_cone_cube, iterable=args):   # Distribute pairs of detections to
-                                                                                   # workers to compute simultaneously
+            for x in p.imap_unordered(calculate_voxel_cone_cube, iterable=args):  # Distribute pairs of detections to
+                # workers to compute simultaneously
                 pbar.update()
                 voxel_cube += x  # Add together results from workers as they arrive, if at the end numpy gets upset
             del args
         pbar.close()
-    #print(voxel_cube[19, 14, 57])
-    #print(voxel_cube[40, 40, 40])
+    # print(voxel_cube[19, 14, 57])
+    # print(voxel_cube[40, 40, 40])
     cut_cube = voxel_cube[:, :, :]
     print(np.max(cut_cube))
     print(np.shape(cut_cube))
-    print(np.array(np.unravel_index(np.argmax(cut_cube), cut_cube.shape), dtype=np.float64)*voxel_length)
+    print(np.array(np.unravel_index(np.argmax(cut_cube), cut_cube.shape), dtype=np.float64) * voxel_length)
 
-    plane = voxel_cube[:, :, int(5/voxel_length)]
+    plane = voxel_cube[:, :, int(5 / voxel_length)]
 
     plt.figure(dpi=600)
     image1 = plt.imshow(plane, cmap='rainbow')
@@ -263,7 +268,7 @@ if __name__ == '__main__':
     print(maxpoint)
     plt.tick_params(bottom=False, labelbottom=False, top=True, labeltop=True)
     plt.colorbar()
-    #plt.scatter(maxpoint[1], maxpoint[0], color='green')
+    # plt.scatter(maxpoint[1], maxpoint[0], color='green')
     plt.tight_layout()
     timedate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
     plt.savefig(f'Plots/2d_reconstruction_save{timedate}.png')
