@@ -15,7 +15,7 @@ tol=1 #coincidence window in picoseconds/monte carlo timestamp units
 coincidences_index=[] #stores the index of coincidences
 detector_number=8 #number of detectors
 source=np.array([0,0,0])
-detector_pos=[np.array([-16.2,16.2,20]),np.array([16.2,16.2,20]),np.array([-16.2,-16.2,20]),np.array([16.2,-16.2,20]),np.array([0,10,100]),np.array([-10,0,100]),np.array([0,-10,100]),np.array([10,0,100])]
+detector_pos=[np.array([-3.2, 3.5, 39.6]),np.array([2.3, -2.2, 41.3]),np.array([-3.4, -5.0, 40.8]),np.array([10.6, 2.7, 39.2]),np.array([-13.4, 0, 80.6]),np.array([0, 13.4, 80.6]),np.array([13.4, 0, 80.6]),np.array([0, -13.4, 80.6])]
 m=-400 #bad angle
 
 angles=[]
