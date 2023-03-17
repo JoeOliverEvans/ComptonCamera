@@ -91,13 +91,13 @@ def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersecti
     # np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
     mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
                   color=(0, 1, 0), scale_mode='none', scale_factor=voxel_length)
-    '''max_intersections_arguments = np.array(np.argwhere(voxel_cube_maya >= np.max(voxel_cube_maya) - 2))
+    max_intersections_arguments = np.array(np.argwhere(voxel_cube_maya >= np.max(voxel_cube_maya) - 2))
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
     # np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
     mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
-                  scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')'''
+                  scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')
     mlab.axes(xlabel='x', ylabel='y', zlabel='z', extent=(0, imaging_area[0], 0, imaging_area[1], 0, imaging_area[2]),
               nb_labels=8)
     mlab.show()
@@ -220,16 +220,17 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    df = pd.read_parquet(
-        r'mcabsorptionscatter16-03-2023 17-00-24.parquet')
+    df = pd.read_parquet(r'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\Data\mcabsorptionscatter17-03-2023 15-13-51.parquet')
 
     print(len(df))
-    print(df.head())
-    for x in range(13000):
+    print(df.head(5))
+    print(df["scatter energy"].max())
+    print(df["scatter energy"].min())
+    for x in range(len(df)):
         row = df.iloc[[x]].to_numpy()[0]
         pairs.append(
-           DetectionPair(np.array(row[1]) + [20, 20, 5], np.array(row[3]) + [20, 20, 5], 662, row[0] * 1000))
-    # pairs.append(DetectionPair([30, 50, 10], [30, 50, 0], 662, 500, np.arctan(1/2)))
+           DetectionPair(np.array(row[1]) + np.array([40, 5, 2]), np.array(row[3]) + np.array([40, 5, 2]), 662, row[0] * 1000))
+    #pairs.append(DetectionPair([20, 50, 10], [30, 40, 0], 662, 100))
     #print(pairs[0].scatterPosition)
     #pairs.append(DetectionPair([24.5, 24.5, 46], [20, 6.5, 89], 662, 177))
     print(pairs[0].scatterPosition)
@@ -238,12 +239,12 @@ if __name__ == '__main__':
     print(pairs[0].scatterAngle)
     '''pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([60, 60, 8])
+    imaging_area = np.array([80, 80, 4])
     voxel_length = 1 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
 
-    pairs_grouped = np.array_split(pairs, (len(pairs) // 25) + 1)  # Split pairs list to save RAM, may be redundant
+    pairs_grouped = np.array_split(pairs, (len(pairs) // 100) + 1)  # Split pairs list to save RAM, may be redundant
 
     """setup of the pool which allows multiple instances of python execute functions (uses all CPU cores)"""
     with Pool(multiprocessing.cpu_count()) as p:
@@ -257,6 +258,8 @@ if __name__ == '__main__':
                 voxel_cube += x  # Add together results from workers as they arrive, if at the end numpy gets upset
             del args
         pbar.close()
+    save_matrix(voxel_cube)
+
     # print(voxel_cube[19, 14, 57])
     # print(voxel_cube[40, 40, 40])
     cut_cube = voxel_cube[:, :, :]
@@ -264,7 +267,7 @@ if __name__ == '__main__':
     print(np.shape(cut_cube))
     print(np.array(np.unravel_index(np.argmax(cut_cube), cut_cube.shape), dtype=np.float64) * voxel_length)
 
-    plane = voxel_cube[:, :, int(5 / voxel_length)]
+    plane = voxel_cube[:, :, int(2 / voxel_length)]
 
     plt.figure(dpi=600)
     image1 = plt.imshow(plane, cmap='rainbow')
@@ -278,7 +281,6 @@ if __name__ == '__main__':
     plt.savefig(f'Plots/2d_reconstruction_save{timedate}.png')
     plt.show()
 
-    save_matrix(voxel_cube)
 
     # plot_3d(view_only_intersections=True)
     mayavi_plot_3d(voxel_cube[:, :, :], view_only_intersections=True)
