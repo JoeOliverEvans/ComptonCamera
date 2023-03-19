@@ -28,6 +28,10 @@ def process_2d():
 def process_3d():
     max_intersections_arguments = np.array(np.argwhere(voxel_cube == np.max(voxel_cube)))
     print(max_intersections_arguments * voxel_length)
+    top10percent = np.array(np.argwhere(voxel_cube >= np.max(voxel_cube)*0.95))
+    print(top10percent)
+    print(np.sum(top10percent, axis=0)/len(top10percent))
+    print("average of top 10%")
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
@@ -48,8 +52,8 @@ def process_3d():
 
 if __name__ == '__main__':
     # get file data
-    file1 = r"SavedVoxelCubes\17-03-2023 20-20-21+(80, 80, 20).txt"
-    file2 = r"SavedVoxelCubes\17-03-2023 20-29-09+(80, 80, 20).txt"
+    file1 = r"SavedVoxelCubes\19-03-2023 17-00-59+(80, 80, 20).txt"
+    file2 = r"SavedVoxelCubes\19-03-2023 17-03-27+(80, 80, 20).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 20
@@ -71,5 +75,5 @@ if __name__ == '__main__':
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
 
-    #process_2d()
+    process_2d()
     process_3d()
