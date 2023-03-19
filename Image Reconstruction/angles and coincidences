@@ -1,31 +1,15 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Feb 21 14:24:47 2023
-
-@author: nate
-"""
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Feb 21 14:24:47 2023
-
-@author: nate
-"""
-
-
 import pandas as pd
 import numpy as np
 import scipy.constants as constants
 from datetime import datetime
 
-data=pd.read_csv(r'/Users/nate/Downloads/positiondata', delimiter=';', header=0) #download the file and put the path here
-data=data.sort_values(by=['timetag'])
+data=pd.read_csv(r'/Users/nate/Downloads/16.03 MC replicated 20000000.csv', delimiter=';', header=0) #download the file and put the path here
+data=data.sort_values(by=['TIMETAG'])
 tol=1 #coincidence window in picoseconds/monte carlo timestamp units
 coincidences_index=[] #stores the index of coincidences
 detector_number=8 #number of detectors
 source=np.array([0,0,0])
-detector_pos=[np.array([-10,10,20]),np.array([10,10,20]),np.array([-10,-10,20]),np.array([10,-10,20]),np.array([0,10,80]),np.array([-10,0,80]),np.array([0,-10,80]),np.array([10,0,80])]
+detector_pos=[np.array([-3.04, 3.04, 41.6]),np.array([3.04, 3.04, 41.6]),np.array([3.04, -3.04, 41.6]),np.array([-3.04, -3.04, 41.6]),np.array([0, -6, 79.6]),np.array([0, 6, 79.6]),np.array([6, 0, 79.6]),np.array([-6, 0, 79.6])]
 
 m=-400 #bad angle
 
@@ -116,7 +100,8 @@ for index_index, coincidence_index in enumerate(coincidences_index): #for all th
                     else:
                         lost.append(coincidence_index)
                         
-timedate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
+#timedate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
+timedate='16thMar'
 # dictionary of lists  
 dict = {'scatter energy': scattera_energies, 'scatter locations': scattera_locations, 'absorption energies': absorption_energies, 'absorption locations': absorption_locations}    
        
