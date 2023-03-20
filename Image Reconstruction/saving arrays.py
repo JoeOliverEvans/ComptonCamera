@@ -6,7 +6,7 @@ from mayavi import mlab
 
 def process_2d():
     plane = voxel_cube[:, :, int(plane_z / voxel_length)]
-    maxpoint = np.unravel_index(np.argmax(plane), plane.shape) * voxel_length
+    maxpoint = np.array(np.unravel_index(np.argmax(plane), plane.shape), dtype=np.float64) * voxel_length
     print(maxpoint)
     print(source_location)
     plt.figure(dpi=600)
@@ -28,7 +28,7 @@ def process_2d():
 def process_3d():
     max_intersections_arguments = np.array(np.argwhere(voxel_cube == np.max(voxel_cube)))
     print(max_intersections_arguments * voxel_length)
-    top10percent = np.array(np.argwhere(voxel_cube >= np.max(voxel_cube)*0.95))
+    top10percent = np.array(np.argwhere(voxel_cube >= np.max(voxel_cube)*0.95), dtype=np.float64) * voxel_length
     print(top10percent)
     print(np.sum(top10percent, axis=0)/len(top10percent))
     print("average of top 10%")
@@ -38,7 +38,7 @@ def process_3d():
 
     mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
                   color=(1, 0, 0), scale_mode='none', scale_factor=voxel_length)
-    max_intersections_arguments = np.array(np.argwhere(voxel_cube >= 0))
+    max_intersections_arguments = np.array(np.argwhere(voxel_cube >= np.max(voxel_cube)*0.95))
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
@@ -52,8 +52,8 @@ def process_3d():
 
 if __name__ == '__main__':
     # get file data
-    file1 = r"SavedVoxelCubes\19-03-2023 17-00-59+(80, 80, 20).txt"
-    file2 = r"SavedVoxelCubes\19-03-2023 17-03-27+(80, 80, 20).txt"
+    file1 = r"SavedVoxelCubes\20-03-2023 14-46-56+(80, 80, 20).txt"
+    file2 = r"SavedVoxelCubes\20-03-2023 14-50-52+(80, 80, 20).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 20
