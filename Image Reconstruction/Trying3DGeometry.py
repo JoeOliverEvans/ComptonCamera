@@ -139,8 +139,14 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
         magnitude = np.linalg.norm(edge_point - pair_of_detections.scatterPosition)
         if magnitude > R_max:
             R_max = magnitude'''
-
-    R_max = abs(imaging_area[2] - pair_of_detections.scatterPosition[2])*2
+    edge_points = [[0, 0, 0], [imaging_area[0], 0, 0], [0, imaging_area[1], 0], [imaging_area[0], imaging_area[1], 0],
+                   [0, 0, imaging_area[2]], [imaging_area[0], 0, imaging_area[2]],
+                   [0, imaging_area[1], imaging_area[2]], [imaging_area[0], imaging_area[1], imaging_area[2]]]
+    R_max = 0
+    for edge_point in edge_points:
+        magnitude = np.linalg.norm(np.array(edge_point) - pair_of_detections.scatterPosition)
+        if magnitude > R_max:
+            R_max = magnitude
     R_min = R_max
     if 0 <= pair_of_detections.scatterPosition[0] < imaging_area[0] and 0 <= pair_of_detections.scatterPosition[1] < \
             imaging_area[1] \
@@ -228,7 +234,7 @@ if __name__ == '__main__':
     print(df["scatter energy"].max())
     print(df["scatter energy"].min())
 
-    z_plane = 4
+    z_plane = 2
     source_z = 20.2
 
     for x in range(len(df)):
@@ -244,7 +250,7 @@ if __name__ == '__main__':
     print(pairs[0].scatterAngle)
     '''pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([10, 10, 8])
+    imaging_area = np.array([8, 8, 4])
     voxel_length = 0.1 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
@@ -288,4 +294,4 @@ if __name__ == '__main__':
 
 
     # plot_3d(view_only_intersections=True)
-    #mayavi_plot_3d(voxel_cube[:, :, :], view_only_intersections=True)
+    mayavi_plot_3d(voxel_cube[:, :, :], view_only_intersections=True)
