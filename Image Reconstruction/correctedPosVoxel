@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Mar 19 17:30:15 2023
+
+@author: amberjones
+"""
+
+import matplotlib.pylab as plt
+import numpy as np
+import scipy.constants as constants
+import pandas as pd
+import warnings
+
+warnings.filterwarnings("ignore", message="divide by zero encountered in double_scalars")
+warnings.filterwarnings("ignore", message="invalid value encountered in arcsin")
+
+dfa=pd.read_parquet(r'/Users/amberjones/Documents/IRdata/posabsorb')
+dfs=pd.read_parquet(r'/Users/amberjones/Documents/IRdata/posscatter')
+
+posa1 = dfa.iloc[:, 1]
+posa2 = dfa.iloc[:, 3]
+
+poss1 = dfs.iloc[:, 1]
+poss2 = dfs.iloc[:, 3]
+
+
+
+XS = []
+YS = []
+ZS = []
+
+XA = []
+YA = []
+ZA = []
+
+for i, n in enumerate(posa1):
+    XA.append(n[0])
+    YA.append(n[1])
+    ZA.append(n[2])
+
+    XA.append(posa2[i][0])
+    YA.append(posa2[i][1])
+    ZA.append(posa2[i][2])
+
+for i, n in enumerate(poss1):
+    XS.append(n[0])
+    YS.append(n[1])
+    ZS.append(n[2])
+
+    XS.append(poss2[i][0])
+    YS.append(poss2[i][1])
+    ZS.append(poss2[i][2])
+
+def pointDensity(X, Y, Z, detector_pos, detector_size, voxel_length):
+
+    vol_max = np.array(detector_pos) + np.array(detector_size)
+    vol_min = np.array(detector_pos) - np.array(detector_size)
+
+    Xd = []
+    Yd = []
+    Zd = []
+
+    for x, y, z in X, Y, Z:
+        #NEED TO KEEP EVENTS PAIRED SOMEHOW LINK TO OTHER DETECTORS
+        if vol_min[0] < x < vol_max[0] and vol_min[1] < y < vol_max[1] and vol_min[2] < z < vol_max[2]:
+            Xd.append(x)
+            Yd.append(y)
+            Zd.append(z)
+
+    #initialise voxels
+    #define number of voxels in each direction
+    n_vox = abs(vol_min[0] - vol_max[0])/voxel_length
+
+
+    #define voxel coordinates
+    X_vox = np.linspace(vol_min[0], vol_max[0], n_vox)
+    Y_vox = np.linspace(vol_min[1], vol_max[1], n_vox)
+    Z_vox = np.linspace(vol_min[2], vol_max[2], n_vox)
+
+    V = []
+    in_voxel = 0
+    for i in range(len(X_vox) - 1):
+        for x, y, z in Xd, Yd, Zd:
+            if X_vox[i] < x < X_vox[i + 1] and Y_vox[i] < y < Y_vox[i + 1] and Z_vox[i] < z < Z_vox[i + 1]:
+                in_voxel +=1
+        V.append(in_voxel)
+
+    return V
+
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+
+
+ax.scatter(XA, YA, ZA, c=ZA, cmap=plt.cm.plasma)
+ax.scatter(XS, YS, ZS, c=ZS, cmap=plt.cm.cividis)
+plt.show()
