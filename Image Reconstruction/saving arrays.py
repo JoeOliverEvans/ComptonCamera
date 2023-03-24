@@ -28,7 +28,8 @@ def process_2d():
 def process_3d():
     max_intersections_arguments = np.array(np.argwhere(voxel_cube == np.max(voxel_cube)))
     print(max_intersections_arguments * voxel_length)
-    top10percent = np.array(np.argwhere(voxel_cube >= np.max(voxel_cube)*0.95), dtype=np.float64) * voxel_length
+    cutoff = 0.9
+    top10percent = np.array(np.argwhere(voxel_cube >= np.max(voxel_cube)*cutoff), dtype=np.float64) * voxel_length
     print(top10percent)
     print(np.sum(top10percent, axis=0)/len(top10percent))
     print("average of top 10%")
@@ -38,22 +39,22 @@ def process_3d():
 
     mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
                   color=(1, 0, 0), scale_mode='none', scale_factor=voxel_length)
-    max_intersections_arguments = np.array(np.argwhere(voxel_cube >= np.max(voxel_cube)*0.95))
+    max_intersections_arguments = np.array(np.argwhere(voxel_cube >= np.max(voxel_cube)*cutoff))
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
     mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
-                  scale_mode='none', scale_factor=voxel_length, opacity=0.05, colormap='rainbow')
+                  scale_mode='none', scale_factor=voxel_length, opacity=0.2, colormap='rainbow')
     mlab.axes(xlabel='x', ylabel='y', zlabel='z',
-              extent=(0, np.array(voxel_cube.shape[0]/voxel_length, dtype=int), 0, np.array(voxel_cube.shape[1]/voxel_length, dtype=int), 0, np.array(voxel_cube.shape[2]/voxel_length, dtype=int)),
+              extent=(0, np.array(voxel_cube.shape[0]*voxel_length, dtype=int), 0, np.array(voxel_cube.shape[1]*voxel_length, dtype=int), 0, np.array(voxel_cube.shape[2]*voxel_length, dtype=int)),
               nb_labels=8)
     mlab.show()
 
 
 if __name__ == '__main__':
     # get file data
-    file1 = r"SavedVoxelCubes\20-03-2023 14-46-56+(80, 80, 20).txt"
-    file2 = r"SavedVoxelCubes\20-03-2023 14-50-52+(80, 80, 20).txt"
+    file1 = r"SavedVoxelCubes\23-03-2023 16-51-51+(80, 80, 20).txt"
+    file2 = r"SavedVoxelCubes\23-03-2023 16-54-55+(80, 80, 20).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 20
@@ -66,12 +67,11 @@ if __name__ == '__main__':
         loaded_arr2.shape[0], loaded_arr2.shape[1] // zs, zs)
 
     # check
-    print("shape of arr: ", (60, 60, 15))
     print("shape of load_original_arr: ", load_original_arr.shape)
 
     # check if both arrays are same or not:
 
-    voxel_cube = load_original_arr + load_original_arr2
+    voxel_cube = load_original_arr# + load_original_arr2
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
 

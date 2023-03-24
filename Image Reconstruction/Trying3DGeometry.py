@@ -227,20 +227,20 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    df = pd.read_parquet(r'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\Data\experimentalscatterscatter15thMarScatterAbsorbOnly.parquet')
+    df = pd.read_parquet(r'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\Data\experimentalscatterscatter20thMarScatterPosShift.parquet')
 
     print(len(df))
     print(df.head(5))
     print(df["scatter energy"].max())
     print(df["scatter energy"].min())
 
-    z_plane = 2
-    source_z = 20.2
+    z_plane = 10
+    source_z = -21.8
 
     for x in range(len(df)):
         row = df.iloc[[x]].to_numpy()[0]
         pairs.append(
-           DetectionPair(np.array(row[1]) + np.array([4, 4, z_plane-source_z]), np.array(row[3]) + np.array([4, 4, z_plane-source_z]), 662, row[0] * 1000))
+           DetectionPair(np.array(row[1]) + np.array([40, 40, z_plane-source_z]), np.array(row[3]) + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
     #pairs.append(DetectionPair([20, 50, 10], [30, 40, 0], 662, 100))
     #print(pairs[0].scatterPosition)
     #pairs.append(DetectionPair([24.5, 24.5, 46], [20, 6.5, 89], 662, 177))
@@ -250,8 +250,8 @@ if __name__ == '__main__':
     print(pairs[0].scatterAngle)
     '''pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([8, 8, 4])
-    voxel_length = 0.1 * 10 ** (0)  # units matching cub_size
+    imaging_area = np.array([80, 80, 20])
+    voxel_length = 1 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
 
