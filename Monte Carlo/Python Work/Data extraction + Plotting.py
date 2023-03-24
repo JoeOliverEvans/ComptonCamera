@@ -7,11 +7,11 @@ import statistics
 """
 Go to the Excel file in Folders, right click and select properties(at the bottom)
 then copy everything after "Location: " and paste into file_path = ''. You will
-need to write the name for the file (Experimental Data 1, in my case) manually.
+need to write the name for the file (Experimental Data_Raw 1, in my case) manually.
 You can't have the Excel file open whilst running this code otherwise it won't 
 work.
 """
-file_path = 'C:/Users/dylan/OneDrive/Documents/Experimental Data 1.xlsx'
+file_path = 'C:/Users/dylan/OneDrive/Documents/Experimental Data_Raw 1.xlsx'
 try:
     df = pd.read_excel(file_path)
 except FileNotFoundError:
