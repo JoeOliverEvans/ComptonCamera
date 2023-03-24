@@ -147,13 +147,13 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
         magnitude = np.linalg.norm(np.array(edge_point) - pair_of_detections.scatterPosition)
         if magnitude > R_max:
             R_max = magnitude
-    R_min = R_max
-    if 0 <= pair_of_detections.scatterPosition[0] < imaging_area[0] and 0 <= pair_of_detections.scatterPosition[1] < \
+    R_min = 0
+    '''if 0 <= pair_of_detections.scatterPosition[0] < imaging_area[0] and 0 <= pair_of_detections.scatterPosition[1] < \
             imaging_area[1] \
             and 0 <= pair_of_detections.scatterPosition[2] < imaging_area[2]:
         R_min = 0
     else:
-        R_min = abs(pair_of_detections.scatterPosition[2] - imaging_area[2])
+        R_min = abs(pair_of_detections.scatterPosition[2] - imaging_area[2])'''
     R = np.arange(R_min, R_max, voxel_length / 2)
     points = []  # Creates arroy with the right shape
     weight = 1  # will be changed for Amber's uncertainty
@@ -227,7 +227,7 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    df = pd.read_parquet(r'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\Data\experimentalscatterscatter20thMarScatterPosShift.parquet')
+    df = pd.read_parquet(r'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\Data\experimentalscatterscatter21thMarScatterAbsorb2Source.parquet')
 
     print(len(df))
     print(df.head(5))
@@ -235,7 +235,7 @@ if __name__ == '__main__':
     print(df["scatter energy"].min())
 
     z_plane = 10
-    source_z = -21.8
+    source_z = -35.4
 
     for x in range(len(df)):
         row = df.iloc[[x]].to_numpy()[0]
@@ -281,7 +281,7 @@ if __name__ == '__main__':
     plane = voxel_cube[:, :, int(z_plane / voxel_length)]
 
     plt.figure(dpi=600)
-    image1 = plt.imshow(plane, cmap='rainbow')
+    image1 = plt.imshow(np.transpose(plane), cmap='rainbow')
     maxpoint = np.unravel_index(np.argmax(plane), plane.shape)
     print(maxpoint)
     plt.tick_params(bottom=False, labelbottom=False, top=True, labeltop=True)

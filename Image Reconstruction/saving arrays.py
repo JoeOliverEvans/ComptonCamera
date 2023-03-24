@@ -10,7 +10,7 @@ def process_2d():
     print(maxpoint)
     print(source_location)
     plt.figure(dpi=600)
-    image1 = plt.imshow(plane, cmap='rainbow')
+    image1 = plt.imshow(np.transpose(plane), cmap='rainbow')
     plt.title(
         f"source location: {source_location}cm, plane location: {str(maxpoint).replace('(', '[').replace(')', ']')}cm")
     tick_locations = np.arange(0, voxel_cube.shape[0], 10)
@@ -53,8 +53,8 @@ def process_3d():
 
 if __name__ == '__main__':
     # get file data
-    file1 = r"SavedVoxelCubes\23-03-2023 16-51-51+(80, 80, 20).txt"
-    file2 = r"SavedVoxelCubes\23-03-2023 16-54-55+(80, 80, 20).txt"
+    file1 = r"SavedVoxelCubes\24-03-2023 14-10-44+(80, 80, 20).txt"
+    file2 = r"SavedVoxelCubes\24-03-2023 14-11-21+(80, 80, 20).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 20
@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     # check if both arrays are same or not:
 
-    voxel_cube = load_original_arr# + load_original_arr2
+    voxel_cube = load_original_arr + load_original_arr2
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
 
