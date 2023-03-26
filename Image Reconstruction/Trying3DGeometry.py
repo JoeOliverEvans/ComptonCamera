@@ -148,12 +148,12 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
         if magnitude > R_max:
             R_max = magnitude
     R_min = 0
-    '''if 0 <= pair_of_detections.scatterPosition[0] < imaging_area[0] and 0 <= pair_of_detections.scatterPosition[1] < \
+    if 0 <= pair_of_detections.scatterPosition[0] < imaging_area[0] and 0 <= pair_of_detections.scatterPosition[1] < \
             imaging_area[1] \
             and 0 <= pair_of_detections.scatterPosition[2] < imaging_area[2]:
         R_min = 0
     else:
-        R_min = abs(pair_of_detections.scatterPosition[2] - imaging_area[2])'''
+        R_min = abs(pair_of_detections.scatterPosition[2] - imaging_area[2])
     R = np.arange(R_min, R_max, voxel_length / 2)
     points = []  # Creates arroy with the right shape
     weight = 1  # will be changed for Amber's uncertainty
@@ -203,10 +203,10 @@ def save_matrix(voxelcube):
 
     # saving array
     timeanddate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
-    np.savetxt(f"SavedVoxelCubes/{timeanddate}+{np.shape(voxelcube)}.txt", arr_reshaped)
+    np.savetxt(f"SavedVoxelCubes/{file_name}{timeanddate}+{np.shape(voxelcube)}.txt", arr_reshaped)
 
     # get file data
-    loaded_arr = np.loadtxt(f"SavedVoxelCubes/{timeanddate}+{np.shape(voxelcube)}.txt")
+    loaded_arr = np.loadtxt(f"SavedVoxelCubes/{file_name}{timeanddate}+{np.shape(voxelcube)}.txt")
 
     # This is a 2D array - need to convert it to the original
     load_original_arr = loaded_arr.reshape(
@@ -227,7 +227,8 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    df = pd.read_parquet(r'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\Data\experimentalscatterscatter21thMarScatterAbsorb2Source.parquet')
+    file_name = 'experimentalabsorptionscatter20thMarScatterAbsorb2Source.parquet'
+    df = pd.read_parquet(fr'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\Data\{file_name}')
 
     print(len(df))
     print(df.head(5))
@@ -235,7 +236,7 @@ if __name__ == '__main__':
     print(df["scatter energy"].min())
 
     z_plane = 10
-    source_z = -35.4
+    source_z = -21.8
 
     for x in range(len(df)):
         row = df.iloc[[x]].to_numpy()[0]
@@ -250,7 +251,7 @@ if __name__ == '__main__':
     print(pairs[0].scatterAngle)
     '''pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([80, 80, 20])
+    imaging_area = np.array([80, 80, 30])
     voxel_length = 1 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
@@ -289,7 +290,7 @@ if __name__ == '__main__':
     # plt.scatter(maxpoint[1], maxpoint[0], color='green')
     plt.tight_layout()
     timedate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
-    plt.savefig(f'Plots/2d_reconstruction_save{timedate}.png')
+    plt.savefig(f'Plots/{file_name}2D{timedate}.png')
     plt.show()
 
 
