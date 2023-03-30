@@ -30,7 +30,7 @@ def process_2d(matrix):
 def process_3d(matrix):
     max_intersections_arguments = np.array(np.argwhere(matrix == np.max(matrix)))
     print(max_intersections_arguments * voxel_length)
-    cutoff = 0.00001
+    cutoff = 0.001
     top10percent = np.array(np.argwhere(matrix >= np.max(matrix)*cutoff), dtype=np.float64) * voxel_length
     print(top10percent)
     print(np.sum(top10percent, axis=0)/len(top10percent))
@@ -60,15 +60,15 @@ def clustering(matrix, min_number_of_labels):
     :param matrix:
     :return:
     """
-    connection_matrix = [[[0, 0, 0],
-                          [0, 1, 0],
-                          [0, 0, 0]],
-                         [[0, 1, 0],
+    connection_matrix = [[[1, 1, 1],
                           [1, 1, 1],
-                          [0, 1, 0]],
-                         [[0, 0, 0],
-                          [0, 1, 0],
-                          [0, 0, 0]]]
+                          [1, 1, 1]],
+                         [[1, 1, 1],
+                          [1, 1, 1],
+                          [1, 1, 1]],
+                         [[1, 1, 1],
+                          [1, 1, 1],
+                          [1, 1, 1]]]
     labelled_matrix = scipy.ndimage.label(matrix, connection_matrix)
     label_list  = significant_labels(labelled_matrix[0], min_number_of_labels)
     return np.array(labelled_matrix[0]), label_list
@@ -84,14 +84,14 @@ def significant_labels(matrix, min_number_of_labels):
 
 if __name__ == '__main__':
     # get file data
-    real_source_location = '[40, 40, 10]'
-    file1 = r"SavedVoxelCubes\17-03-2023 16-22-30+(80, 80, 4).txt"
-    file2 = r"SavedVoxelCubes\17-03-2023 16-28-47+(80, 80, 4).txt"
+    real_source_location = '[40, 40, 20]'
+    file1 = r"SavedVoxelCubes\experimentalabsorptionscatter24thMarNewGeometry2Source.parquet29-03-2023 17-24-18+(80, 80, 40).txt"
+    file2 = r"SavedVoxelCubes\experimentalscatterscatter24thMarNewGeometry2Source.parquet29-03-2023 17-26-19+(80, 80, 40).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
-    zs = 4
+    zs = 40
     voxel_length = 1
-    plane_z = 2
+    plane_z = 20
     # This is a 2D array - need to convert it to the original
     load_original_arr = loaded_arr.reshape(loaded_arr.shape[0], loaded_arr.shape[1] // zs, zs)
 
@@ -104,10 +104,13 @@ if __name__ == '__main__':
     # check if both arrays are same or not:
 
     voxel_cube = load_original_arr + load_original_arr2
+    print(np.max(voxel_cube))
+    voxel_cube = voxel_cube[:, :, :30]
+
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
     print(np.shape(voxel_cube))
-    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.90, 1, 0), 2)
+    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.8, 1, 0), 4)
     print("labels" + str(labels))
     clustered_voxel_cube = np.zeros(np.shape(voxel_cube))
 
@@ -120,7 +123,7 @@ if __name__ == '__main__':
                                                        max_cluster_index * voxel_length,
                                                        np.round(scipy.ndimage.center_of_mass(cluster) * voxel_length, 2)]
         clustered_voxel_cube += cluster
-
+    pd.options.display.max_columns = 500
     print(source_locations.sort_values(['Max Value'], ascending=False))
 
     process_2d(voxel_cube)

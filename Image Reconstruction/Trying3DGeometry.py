@@ -162,7 +162,7 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
     counter = 0
     for r in R:
         point_per_circle_in_area = False
-        Theta_size = 2 * np.arcsin((voxel_length) / (r * np.sin(theta_c)))
+        Theta_size = 2 * np.arcsin(voxel_length / (r * np.sin(theta_c)))
         if math.isnan(Theta_size):
             Theta_size = np.pi
         Theta = np.linspace(0, 2 * np.pi, 2 * int(np.abs(2 * np.pi // Theta_size) + 1))
@@ -227,7 +227,7 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    file_name = 'experimentalabsorptionscatter20thMarScatterAbsorb2Source.parquet'
+    file_name = 'experimentalscatterscatter20thMarScatterAbsorbLong.parquet'
     df = pd.read_parquet(fr'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\Data\{file_name}')
 
     print(len(df))
@@ -235,10 +235,10 @@ if __name__ == '__main__':
     print(df["scatter energy"].max())
     print(df["scatter energy"].min())
 
-    z_plane = 10
+    z_plane = 20
     source_z = -21.8
 
-    for x in range(len(df)):
+    for x in range(int(len(df)/3)):
         row = df.iloc[[x]].to_numpy()[0]
         pairs.append(
            DetectionPair(np.array(row[1]) + np.array([40, 40, z_plane-source_z]), np.array(row[3]) + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     print(pairs[0].scatterAngle)
     '''pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([80, 80, 30])
+    imaging_area = np.array([80, 80, 40])
     voxel_length = 1 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
