@@ -8,9 +8,6 @@ import pandas as pd
 
 def process_2d(matrix):
     plane = matrix[:, :, int(plane_z / voxel_length)]
-    maxpoint = np.array(np.unravel_index(np.argmax(plane), plane.shape), dtype=np.float64) * voxel_length
-    print(maxpoint)
-    print(source_location)
     plt.figure(dpi=600)
     image1 = plt.imshow(np.transpose(plane), cmap='rainbow')
     plt.title(
@@ -70,23 +67,35 @@ def clustering(matrix, min_number_of_labels):
                           [1, 1, 1],
                           [1, 1, 1]]]
     labelled_matrix = scipy.ndimage.label(matrix, connection_matrix)
-    label_list  = significant_labels(labelled_matrix[0], min_number_of_labels)
+    label_list = significant_labels(labelled_matrix[0], labelled_matrix[1], min_number_of_labels)
     return np.array(labelled_matrix[0]), label_list
 
 
-def significant_labels(matrix, min_number_of_labels):
+def significant_labels(matrix, number_of_labels, min_number_of_labels):
     relevant_labels = []
-    for x in range(np.max(matrix)):
+    for x in range(number_of_labels+1):
         if np.count_nonzero(matrix == x) >= min_number_of_labels and x != 0:
             relevant_labels.append(x)
     return relevant_labels
 
 
+def variance(matrix):
+    matrix_max = [0, 0, 0]
+    matrix_min = [*matrix.shape]
+    for coord in np.argwhere(matrix > 0):
+        for axis, value in enumerate(coord):
+            if matrix_max[axis] < value:
+                matrix_max[axis] = value
+            if matrix_min[axis] > value:
+                matrix_min[axis] = value
+    return np.array(matrix_max) - np.array(matrix_min)
+
+
 if __name__ == '__main__':
     # get file data
     real_source_location = '[40, 40, 20]'
-    file1 = r"SavedVoxelCubes\experimentalabsorptionscatter24thMarNewGeometry2Source.parquet29-03-2023 17-24-18+(80, 80, 40).txt"
-    file2 = r"SavedVoxelCubes\experimentalscatterscatter24thMarNewGeometry2Source.parquet29-03-2023 17-26-19+(80, 80, 40).txt"
+    file1 = r"SavedVoxelCubes\experimentalabsorptionscatter24thMarNewGeometryBothFiles.parquet29-03-2023 17-08-18+(80, 80, 40).txt"
+    file2 = r"SavedVoxelCubes\experimentalscatterscatter24thMarNewGeometryBothFiles.parquet29-03-2023 17-15-56+(80, 80, 40).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 40
@@ -110,18 +119,19 @@ if __name__ == '__main__':
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
     print(np.shape(voxel_cube))
-    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.8, 1, 0), 4)
+    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.90, 1, 0), 1)
     print("labels" + str(labels))
     clustered_voxel_cube = np.zeros(np.shape(voxel_cube))
 
-    source_locations = pd.DataFrame(columns=['Max Value', 'Size', 'Max Location', 'Centre of mass'])
+    source_locations = pd.DataFrame(columns=['Max Value', 'Size', 'Max Location', 'Centre of mass', 'Max Variance'])
     for label in labels:
         cluster = np.where(cluster_locations == label, voxel_cube, 0)
         max_cluster_index = np.array(np.argwhere(cluster == np.max(cluster)))
         source_locations.loc[len(source_locations)] = [np.max(cluster),
                                                        np.count_nonzero(cluster),
                                                        max_cluster_index * voxel_length,
-                                                       np.round(scipy.ndimage.center_of_mass(cluster) * voxel_length, 2)]
+                                                       np.round(scipy.ndimage.center_of_mass(cluster) * voxel_length, 2),
+                                                       variance(cluster)]
         clustered_voxel_cube += cluster
     pd.options.display.max_columns = 500
     print(source_locations.sort_values(['Max Value'], ascending=False))

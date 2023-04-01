@@ -91,13 +91,13 @@ def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersecti
     # np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
     mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
                   color=(0, 1, 0), scale_mode='none', scale_factor=voxel_length)
-    max_intersections_arguments = np.array(np.argwhere(voxel_cube_maya > 0))
+    '''max_intersections_arguments = np.array(np.argwhere(voxel_cube_maya > 0))
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
     # np.array(np.argwhere(voxel_cube == np.max(voxel_cube)), dtype=np.float64) * voxel_length
     mlab.points3d(c * voxel_length, v * voxel_length, b * voxel_length, voxel_cube[c, v, b], mode='cube',
-                  scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')
+                  scale_mode='none', scale_factor=voxel_length, opacity=0.1, colormap='autumn')'''
     mlab.axes(xlabel='x', ylabel='y', zlabel='z', extent=(0, imaging_area[0], 0, imaging_area[1], 0, imaging_area[2]),
               nb_labels=8)
     mlab.show()
@@ -154,7 +154,7 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
         R_min = 0
     else:
         R_min = abs(pair_of_detections.scatterPosition[2] - imaging_area[2])
-    R = np.arange(R_min, R_max, voxel_length / 2)
+    R = np.arange(R_min, R_max, voxel_length)
     points = []  # Creates arroy with the right shape
     weight = 1  # will be changed for Amber's uncertainty
 
@@ -177,7 +177,7 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
                 point_per_circle_in_area = True
         if not point_per_circle_in_area and len(points) > 0:
             break
-
+    print(counter)
     points = np.reshape(points, (counter, 3))
     return points
 
@@ -227,7 +227,7 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    file_name = 'experimentalscatterscatter20thMarScatterAbsorbLong.parquet'
+    file_name = 'experimentalscatterscatter17thMarScatterAbsorbOnly (2).parquet'
     df = pd.read_parquet(fr'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\Data\{file_name}')
 
     print(len(df))
@@ -236,13 +236,13 @@ if __name__ == '__main__':
     print(df["scatter energy"].min())
 
     z_plane = 20
-    source_z = -21.8
+    source_z = -32.5
 
-    for x in range(int(len(df)/3)):
-        row = df.iloc[[x]].to_numpy()[0]
-        pairs.append(
-           DetectionPair(np.array(row[1]) + np.array([40, 40, z_plane-source_z]), np.array(row[3]) + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
-    #pairs.append(DetectionPair([20, 50, 10], [30, 40, 0], 662, 100))
+    #for x in range(int(len(df))):
+    #    row = df.iloc[[x]].to_numpy()[0]
+    #    pairs.append(
+    #      DetectionPair(np.array(row[1]) + np.array([40, 40, z_plane-source_z]), np.array(row[3]) + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
+    pairs.append(DetectionPair([40, 40, 10], [40, 40, 0], 662, 100))
     #print(pairs[0].scatterPosition)
     #pairs.append(DetectionPair([24.5, 24.5, 46], [20, 6.5, 89], 662, 177))
     print(pairs[0].scatterPosition)
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     print(pairs[0].scatterAngle)
     '''pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([80, 80, 40])
+    imaging_area = np.array([80, 80, 80])
     voxel_length = 1 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
