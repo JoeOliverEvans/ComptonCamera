@@ -26,12 +26,8 @@ def process_2d(matrix):
 
 def process_3d(matrix):
     max_intersections_arguments = np.array(np.argwhere(matrix == np.max(matrix)))
-    print(max_intersections_arguments * voxel_length)
     cutoff = 0.001
     top10percent = np.array(np.argwhere(matrix >= np.max(matrix)*cutoff), dtype=np.float64) * voxel_length
-    print(top10percent)
-    print(np.sum(top10percent, axis=0)/len(top10percent))
-    print("average of top 10%")
     c = max_intersections_arguments[:, 0]
     v = max_intersections_arguments[:, 1]
     b = max_intersections_arguments[:, 2]
@@ -119,7 +115,7 @@ if __name__ == '__main__':
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
     print(np.shape(voxel_cube))
-    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.90, 1, 0), 1)
+    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.85, 1, 0), 5)
     print("labels" + str(labels))
     clustered_voxel_cube = np.zeros(np.shape(voxel_cube))
 
@@ -131,10 +127,10 @@ if __name__ == '__main__':
                                                        np.count_nonzero(cluster),
                                                        max_cluster_index * voxel_length,
                                                        np.round(scipy.ndimage.center_of_mass(cluster) * voxel_length, 2),
-                                                       variance(cluster)]
+                                                       variance(cluster) * voxel_length]
         clustered_voxel_cube += cluster
     pd.options.display.max_columns = 500
-    print(source_locations.sort_values(['Max Value'], ascending=False))
+    print(source_locations.sort_values(['Size'], ascending=False))
 
     process_2d(voxel_cube)
     process_3d(clustered_voxel_cube)
