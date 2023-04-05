@@ -28,7 +28,7 @@ def CalculateScatterAngle(initial_energy, scatter_energy_deposited):
 
 
 class DetectionPair:
-    def __init__(self, scatter_position, absorption_position, initial_energy, scatter_energy, angle):
+    def __init__(self, scatter_position, absorption_position, initial_energy, scatter_energy):
         """
         :param scatter_position: Coordinates of scatter
         :param absorption_position: Coordinates of absorption
@@ -41,7 +41,7 @@ class DetectionPair:
             (np.array(self.scatterPosition) - np.array(self.absorptionPosition)) / np.linalg.norm(
                 np.array(self.scatterPosition) - np.array(self.absorptionPosition)), dtype=np.float64)
         self.scatterEnergy = np.float64(scatter_energy)
-        self.scatterAngle = angle  # CalculateScatterAngle(initial_energy, scatter_energy)
+        self.scatterAngle = CalculateScatterAngle(initial_energy, scatter_energy)
 
 
 def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
@@ -227,9 +227,9 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    file_name = 'experimentalabsorptionscatter24thMarNewGeometryBothFiles.parquet'
+    file_name = 'experimentalabsorptionscatter15thMarAllPoints.parquet'
     df = pd.read_parquet(
-        fr'C:\Users\joeol\Documents\Computing year 2\ComptonCameraNew\Image Reconstruction\Data\{file_name}')
+        fr'{file_name}')
 
     print(len(df))
     print(df.head(5))
@@ -237,9 +237,9 @@ if __name__ == '__main__':
     print(df["scatter energy"].min())
 
     z_plane = 20
-    source_z = -24.1
+    source_z = 20.2
 
-    for x in range(int(len(df))):
+    for x in range(len(df)):
         row = df.iloc[[x]].to_numpy()[0]
         pairs.append(
           DetectionPair(np.array(row[1]) + np.array([40, 40, z_plane-source_z]), np.array(row[3]) + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
@@ -254,7 +254,7 @@ if __name__ == '__main__':
     print(pairs[0].scatterAngle)
     '''pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([80, 80, 80])
+    imaging_area = np.array([80, 80, 40])
     voxel_length = 0.5 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
@@ -262,6 +262,7 @@ if __name__ == '__main__':
     pairs_grouped = np.array_split(pairs, (len(pairs) // 100) + 1)  # Split pairs list to save RAM, may be redundant
 
     """setup of the pool which allows multiple instances of python execute functions (uses all CPU cores)"""
+    print(multiprocessing.cpu_count())
     with Pool(multiprocessing.cpu_count()) as p:
         pbar = tqdm(total=len(pairs))  # sets up progress bar
         for cone_group in pairs_grouped:

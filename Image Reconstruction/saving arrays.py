@@ -137,6 +137,9 @@ if __name__ == '__main__':
     # check if both arrays are same or not:
 
     voxel_cube = load_original_arr + load_original_arr2
+
+    voxel_cube = voxel_cube[20:-20, 20:-20, :]
+
     print(np.max(voxel_cube))
     voxel_cube = voxel_cube[:, :, :]
 
