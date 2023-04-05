@@ -6,10 +6,37 @@ import scipy
 import pandas as pd
 
 
-def process_2d(matrix):
-    plane = matrix[:, :, int(plane_z / voxel_length)]
-    plt.figure(dpi=600)
-    image1 = plt.imshow(np.transpose(plane), cmap='rainbow')
+def process_2d(matrix, dataframe):
+    matrix = matrix[:, ::-1, :]     # fix y direction for matplotlib
+    plane_xy = np.transpose(matrix[:, :, int(plane_z / voxel_length)])     # fix x direction for matplotlib
+    plane_yz = (matrix[int(np.shape(matrix)[0]/2 - 1), :, :])
+    max_val = np.max([np.max(plane_xy), np.max(plane_yz)])
+    min_val = np.min([np.min(plane_xy), np.min(plane_yz)])
+    print(np.unravel_index(np.argmax(matrix[:,:,:25]), np.shape(matrix[:,:,:25])))
+
+    print(plane_yz[39, 17])
+    print(plane_yz[39, 16])
+    print(np.unravel_index(np.argmax(plane_xy), np.shape(plane_xy)))
+    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(7.2, 4.2), gridspec_kw={'width_ratios': [2, 1]}, sharey=True)
+    fig.suptitle(f"Actual location: {real_source_location}, Found location: "
+                 f"{list(source_locations['Centre of mass'].iloc[0])} cm,\n"
+                 f"Variance: {list(source_locations['Max Variance'].iloc[0])} cm")
+    tick_locations = np.arange(0, matrix.shape[0] * voxel_length, 10)
+    plt.xticks(tick_locations, np.array(tick_locations / voxel_length, dtype=int))
+    plt.yticks(tick_locations, np.array(tick_locations / voxel_length, dtype=int))
+    im1 = ax[0].imshow(plane_xy, vmin=min_val, vmax=max_val, cmap='rainbow')
+    im2 = ax[1].imshow(plane_yz, vmin=min_val, vmax=max_val, cmap='rainbow')
+    ax[0].set_ylabel('y (cm)')
+    ax[0].set_xlabel('x (cm)')
+    ax[1].set_xlabel('z (cm)')
+    fig.subplots_adjust(right=0.85)
+    cbar_ax = fig.add_axes([0.88, 0.118, 0.03, 0.753])
+    plt.colorbar(im2, cax=cbar_ax, label="Number of cones per voxel")
+    timedate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
+    plt.savefig(f'Plots/2d_reconstruction_save{timedate}.png', dpi=600)
+    plt.show()
+    '''plt.figure(dpi=600)
+    image1 = plt.imshow(plane, cmap='rainbow')
     plt.title(
         f"Actual source location: {real_source_location}, Found source location{source_location}cm")
     tick_locations = np.arange(0, matrix.shape[0], 10)
@@ -21,7 +48,7 @@ def process_2d(matrix):
     plt.tight_layout()
     timedate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
     plt.savefig(f'Plots/2d_reconstruction_save{timedate}.png')
-    plt.show()
+    plt.show()'''
 
 
 def process_3d(matrix):
@@ -79,24 +106,25 @@ def variance(matrix):
     matrix_max = [0, 0, 0]
     matrix_min = [*matrix.shape]
     for coord in np.argwhere(matrix > 0):
+        print(coord)
         for axis, value in enumerate(coord):
             if matrix_max[axis] < value:
                 matrix_max[axis] = value
             if matrix_min[axis] > value:
                 matrix_min[axis] = value
-    return np.array(matrix_max) - np.array(matrix_min)
+    return (np.array(matrix_max) - np.array(matrix_min)) + 1
 
 
 if __name__ == '__main__':
     # get file data
     real_source_location = '[40, 40, 20]'
-    file1 = r"SavedVoxelCubes\experimentalabsorptionscatter24thMarNewGeometryBothFiles.parquet29-03-2023 17-08-18+(80, 80, 40).txt"
-    file2 = r"SavedVoxelCubes\experimentalscatterscatter24thMarNewGeometryBothFiles.parquet29-03-2023 17-15-56+(80, 80, 40).txt"
+    file1 = r"SavedVoxelCubes\17-03-2023 20-20-21+(80, 80, 20).txt"
+    file2 = r"SavedVoxelCubes\17-03-2023 20-29-09+(80, 80, 20).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
-    zs = 40
-    voxel_length = 1
-    plane_z = 20
+    zs = 20
+    voxel_length = 1  #cm
+    plane_z = 10
     # This is a 2D array - need to convert it to the original
     load_original_arr = loaded_arr.reshape(loaded_arr.shape[0], loaded_arr.shape[1] // zs, zs)
 
@@ -110,12 +138,12 @@ if __name__ == '__main__':
 
     voxel_cube = load_original_arr + load_original_arr2
     print(np.max(voxel_cube))
-    voxel_cube = voxel_cube[:, :, :30]
+    voxel_cube = voxel_cube[:, :, :]
 
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
     print(np.shape(voxel_cube))
-    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.85, 1, 0), 5)
+    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.8, 1, 0), 5)
     print("labels" + str(labels))
     clustered_voxel_cube = np.zeros(np.shape(voxel_cube))
 
@@ -126,11 +154,12 @@ if __name__ == '__main__':
         source_locations.loc[len(source_locations)] = [np.max(cluster),
                                                        np.count_nonzero(cluster),
                                                        max_cluster_index * voxel_length,
-                                                       np.round(scipy.ndimage.center_of_mass(cluster) * voxel_length, 2),
+                                                       np.round(np.array(scipy.ndimage.center_of_mass(cluster)) * voxel_length, 1),
                                                        variance(cluster) * voxel_length]
         clustered_voxel_cube += cluster
     pd.options.display.max_columns = 500
-    print(source_locations.sort_values(['Size'], ascending=False))
+    source_locations = source_locations.sort_values(['Size'], ascending=False)
+    print(source_locations)
 
-    process_2d(voxel_cube)
+    process_2d(voxel_cube, source_locations)
     process_3d(clustered_voxel_cube)
