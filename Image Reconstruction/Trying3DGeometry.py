@@ -8,7 +8,7 @@ import scipy.constants as constants
 from multiprocessing import Pool
 from tqdm import tqdm
 import pandas as pd
-from mayavi import mlab
+#from mayavi import mlab
 import warnings
 
 warnings.filterwarnings("ignore", message="divide by zero encountered in double_scalars")
@@ -79,7 +79,7 @@ def plot_3d(view_only_intersections=True, min_number_of_intersections=2):
         plt.show()
 
 
-def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersections=-1):
+'''def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersections=-1):
     if min_intersections == -1:
         min_intersections = np.max(voxel_cube_maya)
     max_intersections_arguments = np.array(np.argwhere(voxel_cube_maya == np.max(voxel_cube_maya)))
@@ -100,7 +100,7 @@ def mayavi_plot_3d(voxel_cube_maya, view_only_intersections=True, min_intersecti
                   scale_mode='none', scale_factor=voxel_length, opacity=1, colormap='rainbow')
     mlab.axes(xlabel='x', ylabel='y', zlabel='z', extent=(0, imaging_area[0], 0, imaging_area[1], 0, imaging_area[2]),
               nb_labels=8)
-    mlab.show()
+    mlab.show()'''
 
 
 def rotation_matrix(vec1, vec2):
@@ -285,7 +285,7 @@ if __name__ == '__main__':
 
     plane = voxel_cube[:, :, int(z_plane / voxel_length)]
 
-    plt.figure(dpi=600)
+    '''plt.figure(dpi=600)
     image1 = plt.imshow(np.transpose(plane), cmap='rainbow')
     maxpoint = np.unravel_index(np.argmax(plane), plane.shape)
     print(maxpoint)
@@ -295,7 +295,7 @@ if __name__ == '__main__':
     plt.tight_layout()
     timedate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
     plt.savefig(f'Plots/{file_name}2D{timedate}.png')
-    plt.show()
+    plt.show()'''
 
     # plot_3d(view_only_intersections=True)
-    mayavi_plot_3d(voxel_cube[:, :, :], view_only_intersections=True)
+    #mayavi_plot_3d(voxel_cube[:, :, :], view_only_intersections=True)
