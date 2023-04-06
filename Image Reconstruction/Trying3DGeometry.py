@@ -245,8 +245,11 @@ if __name__ == '__main__':
 
     for x in range(len(df)):
         row = df.iloc[[x]].to_numpy()[0]
-        pairs.append(
-          DetectionPair(np.array(row[1]) + np.array([40, 40, z_plane-source_z]), np.array(row[3]) + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
+        try:
+            pairs.append(
+              DetectionPair(np.array(row[1]) + np.array([40, 40, z_plane-source_z]), np.array(row[3]) + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
+        except ZeroDivisionError:
+            pass
     #pairs.append(DetectionPair([50, 20, 30], [50, 20, 0], 662, 100, np.pi / 4))
     #pairs.append(DetectionPair([10, 60, 40], [10, 60, 0], 662, 100, np.arctan(4 / 3)))
     #pairs.append(DetectionPair([70, 60, 10], [70, 60, 0], 662, 100, np.arctan(2 / 6)))
