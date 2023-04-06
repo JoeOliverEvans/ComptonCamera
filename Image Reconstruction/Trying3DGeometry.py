@@ -160,6 +160,10 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
 
     Rot = rotation_matrix(vect1, vect2)
     counter = 0
+
+    sin_t_c = np.sin(theta_c)
+    cos_t_c = np.cos(theta_c)
+
     for r in R:
         point_per_circle_in_area = False
         Theta_size = 2 * np.arcsin((voxel_length / 2) / (r * np.sin(theta_c)))
@@ -168,7 +172,7 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
         Theta = np.linspace(0, 2 * np.pi, 2 * int(np.abs(2 * np.pi // Theta_size) + 1))
         for t in Theta:
             rotated_point = Rot.dot(
-                [r * np.sin(theta_c) * np.cos(t), r * np.sin(theta_c) * np.sin(t), np.cos(theta_c) * r])
+                [r * sin_t_c * np.cos(t), r * sin_t_c * np.sin(t), r * cos_t_c])
             rotated_translated_point = rotated_point + pair_of_detections.scatterPosition
             if 0 <= rotated_translated_point[0] < imaging_area[0] and 0 <= rotated_translated_point[1] < imaging_area[1] \
                     and 0 <= rotated_translated_point[2] < imaging_area[2]:
