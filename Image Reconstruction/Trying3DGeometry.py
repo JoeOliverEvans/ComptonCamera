@@ -231,9 +231,9 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    file_name = 'experimentalscatterscatter15thMarLonger.parquet'
+    file_name = 'experimentalabsorptionscatter15thMarLonger.parquet'
     df = pd.read_parquet(
-        fr'{file_name}')
+        fr'Final Data/{file_name}')
 
     print(len(df))
     print(df.head(25))

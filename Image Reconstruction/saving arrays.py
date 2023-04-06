@@ -124,8 +124,8 @@ def variance(matrix):
 if __name__ == '__main__':
     # get file data
     real_source_location = '[40, 40, 20]'
-    file1 = r"SavedVoxelCubes\experimentalabsorptionscatter15thMarAllPoints.parquet05-04-2023 19-25-50+(160, 160, 80).txt"
-    file2 = r"SavedVoxelCubes\experimentalscatterscatter15thMarAllPoints.parquet06-04-2023 11-51-46+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\experimentalabsorptionscatter24thMarNewGeometryBothFiles.parquet06-04-2023 14-11-35+(160, 160, 80).txt"
+    file2 = r"SavedVoxelCubes\experimentalscatterscatter24thMarNewGeometryBothFiles.parquet06-04-2023 13-12-19+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 80
@@ -147,12 +147,11 @@ if __name__ == '__main__':
     voxel_cube = voxel_cube[:, :, :]
 
     print(np.max(voxel_cube))
-    voxel_cube = voxel_cube[:, :, :60]
 
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
     print(np.shape(voxel_cube))
-    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.75, 1, 0), 1)
+    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.75, 1, 0), 5)
     print("labels" + str(labels))
     clustered_voxel_cube = np.zeros(np.shape(voxel_cube))
 
@@ -170,5 +169,5 @@ if __name__ == '__main__':
     source_locations = source_locations.sort_values(['Size'], ascending=False)
     print(source_locations)
 
-    process_2d(voxel_cube, source_locations)
+    process_2d(clustered_voxel_cube, source_locations)
     process_3d(clustered_voxel_cube)
