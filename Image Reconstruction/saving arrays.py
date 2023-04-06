@@ -124,13 +124,13 @@ def variance(matrix):
 if __name__ == '__main__':
     # get file data
     real_source_location = '[40, 40, 20]'
-    file1 = r"SavedVoxelCubes\posabsorptionscatter15thMarNoSmear.parquet06-04-2023 19-47-02+(160, 160, 80).txt"
-    file2 = r"SavedVoxelCubes\posscatterscatter15thMarNoSmear.parquet06-04-2023 19-23-38+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\mcabsorptionscatter15thMarAllPoints.parquet06-04-2023 21-34-20+(160, 160, 80).txt"
+    file2 = r"SavedVoxelCubes\mcscatterscatter15thMarAllPoints.parquet06-04-2023 21-50-39+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 80
     voxel_length = 0.5  #cm
-    plane_z = 20
+    plane_z = 39
     # This is a 2D array - need to convert it to the original
     load_original_arr = loaded_arr.reshape(loaded_arr.shape[0], loaded_arr.shape[1] // zs, zs)
 
