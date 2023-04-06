@@ -124,8 +124,8 @@ def variance(matrix):
 if __name__ == '__main__':
     # get file data
     real_source_location = '[40, 40, 20]'
-    file1 = r"SavedVoxelCubes\experimentalabsorptionscatter24thMarNewGeometryBothFiles.parquet06-04-2023 14-11-35+(160, 160, 80).txt"
-    file2 = r"SavedVoxelCubes\experimentalscatterscatter24thMarNewGeometryBothFiles.parquet06-04-2023 13-12-19+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\experimentalabsorptionscatter15thMarLonger.parquet06-04-2023 18-22-02+(160, 160, 80).txt"
+    file2 = r"SavedVoxelCubes\experimentalscatterscatter15thMarLonger.parquet06-04-2023 17-39-15+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 80
@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
     voxel_cube = load_original_arr + load_original_arr2
 
-    voxel_cube = voxel_cube[:, :, :]
+    voxel_cube = voxel_cube[:, :, :60]
 
     print(np.max(voxel_cube))
 
@@ -169,5 +169,5 @@ if __name__ == '__main__':
     source_locations = source_locations.sort_values(['Size'], ascending=False)
     print(source_locations)
 
-    process_2d(clustered_voxel_cube, source_locations)
+    process_2d(voxel_cube, source_locations)
     process_3d(clustered_voxel_cube)
