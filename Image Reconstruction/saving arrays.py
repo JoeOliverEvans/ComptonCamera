@@ -29,7 +29,7 @@ def process_2d(matrix, dataframe):
     ax[0].set_xticks(np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])-1)
     ax[0].set_xticklabels([0, 10, 20, 30, 40, 50, 60, 70, 80])
     ax[0].set_yticks(np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])-1)
-    ax[0].set_yticklabels([0, 10, 20, 30, 40, 50, 60, 70, 80])
+    ax[0].set_yticklabels([0, 10, 20, 30, 40, 50, 60, 70, 80][::-1])
     ax[1].set_xticks(np.array([0, 20, 40, 60, 80])-1)
     ax[1].set_xticklabels([0, 10, 20, 30, 40])
     ax[0].set_ylabel('y (cm)')
@@ -152,7 +152,7 @@ if __name__ == '__main__':
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
     print(np.shape(voxel_cube))
-    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.85, 1, 0), 1)
+    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.75, 1, 0), 1)
     print("labels" + str(labels))
     clustered_voxel_cube = np.zeros(np.shape(voxel_cube))
 
