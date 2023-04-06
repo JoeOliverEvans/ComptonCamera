@@ -124,13 +124,13 @@ def variance(matrix):
 if __name__ == '__main__':
     # get file data
     real_source_location = '[40, 40, 20]'
-    file1 = r"SavedVoxelCubes\experimentalabsorptionscatter15thMarLonger.parquet06-04-2023 18-22-02+(160, 160, 80).txt"
-    file2 = r"SavedVoxelCubes\experimentalscatterscatter15thMarLonger.parquet06-04-2023 17-39-15+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\posabsorptionscatter15thMarNoSmear.parquet06-04-2023 19-01-31+(160, 160, 80).txt"
+    file2 = r"SavedVoxelCubes\posscatterscatter15thMarNoSmear.parquet06-04-2023 19-10-12+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 80
     voxel_length = 0.5  #cm
-    plane_z = 20
+    plane_z = 0
     # This is a 2D array - need to convert it to the original
     load_original_arr = loaded_arr.reshape(loaded_arr.shape[0], loaded_arr.shape[1] // zs, zs)
 
@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
     voxel_cube = load_original_arr + load_original_arr2
 
-    voxel_cube = voxel_cube[:, :, :60]
+    voxel_cube = voxel_cube[:, :, :]
 
     print(np.max(voxel_cube))
 
