@@ -130,7 +130,7 @@ if __name__ == '__main__':
     loaded_arr2 = np.loadtxt(file2)
     zs = 80
     voxel_length = 0.5  #cm
-    plane_z = 39
+    plane_z = 20
     # This is a 2D array - need to convert it to the original
     load_original_arr = loaded_arr.reshape(loaded_arr.shape[0], loaded_arr.shape[1] // zs, zs)
 
