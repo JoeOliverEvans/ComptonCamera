@@ -233,7 +233,7 @@ if __name__ == '__main__':
     pairs = []
     file_name = 'experimentalabsorptionscatter15thMarLonger.parquet'
     df = pd.read_parquet(
-        fr'Final Data/{file_name}')
+        fr'{file_name}')
 
     print(len(df))
     print(df.head(25))
