@@ -124,9 +124,9 @@ def variance(matrix):
 if __name__ == '__main__':
     # get file data
     real_source_location = '[40, 40, 20]'
-    file1 = r"SavedVoxelCubes\posabsorptionscatter15thMarNoSmear.parquet06-04-2023 19-01-31+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\posabsorptionscatter15thMarNoSmear.parquet06-04-2023 19-47-02+(160, 160, 80).txt"
     file2 = r"SavedVoxelCubes\posscatterscatter15thMarNoSmear.parquet06-04-2023 19-23-38+(160, 160, 80).txt"
-    loaded_arr = np.loadtxt(file1)  *0
+    loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 80
     voxel_length = 0.5  #cm
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
     print(np.shape(voxel_cube))
-    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.75, 1, 0), 5)
+    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.75, 1, 0), 1)
     print("labels" + str(labels))
     clustered_voxel_cube = np.zeros(np.shape(voxel_cube))
 
