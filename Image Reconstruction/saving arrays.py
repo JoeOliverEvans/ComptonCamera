@@ -121,10 +121,10 @@ def variance(matrix):
 
 if __name__ == '__main__':
     # get file data
-    file1 = r"SavedVoxelCubes\posabsorptionscatter24thMar2SourceLong.parquet07-04-2023 21-09-47+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\posabsorptionscatter24thMar2SourceLong.parquet07-04-2023 21-23-29+(160, 160, 80).txt"
     file2 = r"SavedVoxelCubes\posscatterscatter24thMar2SourceLong.parquet07-04-2023 20-06-17+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)
-    loaded_arr2 = np.loadtxt(file2)
+    loaded_arr2 = np.loadtxt(file2)*0
     zs = 80
     voxel_length = 0.5  #cm
     plane_z = 20
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
     print(np.shape(voxel_cube))
-    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.75, 1, 0), 1)
+    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.75, 1, 0), 10)
     print("labels" + str(labels))
     clustered_voxel_cube = np.zeros(np.shape(voxel_cube))
 
@@ -174,6 +174,6 @@ if __name__ == '__main__':
         clustered_voxel_cube += cluster
     pd.options.display.max_columns = 500
     source_locations = source_locations.sort_values(['Size'], ascending=False)
-
+    print(source_locations)
     process_2d(voxel_cube, source_locations)
     process_3d(clustered_voxel_cube)
