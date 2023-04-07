@@ -233,17 +233,20 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    file_name = 'posscatterscatter24thMar2SourceLong.parquet'
+    file_name = 'posscatterscatter24thMar2SourceLongAttempt2.parquet'
     df = pd.read_parquet(
         fr'{file_name}')
 
+    pd.set_option('display.max_rows', 500)
+    pd.set_option('display.max_columns', 500)
+    pd.set_option('display.width', 150)
     print(len(df))
     print(df.head(25))
     print(df["scatter energy"].max())
     print(df["scatter energy"].min())
 
     z_plane = 20
-    source_z = 0
+    source_z = -24.1
 
     for x in range(len(df)):
         row = df.iloc[[x]].to_numpy()[0]
