@@ -27,11 +27,11 @@ def process_2d(matrix, dataframe):
     im1 = ax[0].imshow(plane_xy, vmin=min_val, vmax=max_val, cmap='rainbow')
     im2 = ax[1].imshow(plane_yz, vmin=min_val, vmax=max_val, cmap='rainbow')
     ax[0].set_xticks(np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])-1)
-    ax[0].set_xticklabels([0, 10, 20, 30, 40, 50, 60, 70, 80])
+    ax[0].set_xticklabels(np.array([0, 10, 20, 30, 40, 50, 60, 70, 80]) + graphxoffset)
     ax[0].set_yticks(np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])-1)
-    ax[0].set_yticklabels([0, 10, 20, 30, 40, 50, 60, 70, 80][::-1])
+    ax[0].set_yticklabels(np.array([0, 10, 20, 30, 40, 50, 60, 70, 80][::-1]) + graphyoffset)
     ax[1].set_xticks(np.array([0, 20, 40, 60, 80])-1)
-    ax[1].set_xticklabels([0, 10, 20, 30, 40])
+    ax[1].set_xticklabels(np.array([0, 10, 20, 30, 40]) + graphzoffset)
     ax[0].set_ylabel('y (cm)')
     ax[0].set_xlabel('x (cm)')
     ax[1].set_xlabel('z (cm)')
@@ -123,14 +123,23 @@ def variance(matrix):
 
 if __name__ == '__main__':
     # get file data
-    real_source_location = '[40, 40, 20]'
-    file1 = r"SavedVoxelCubes\mcabsorptionscatter15thMarYesSmear2Files.parquet07-04-2023 16-17-38+(160, 160, 80).txt"
-    file2 = r"SavedVoxelCubes\mcscatterscatter15thMarYesSmear2Files.parquet07-04-2023 16-13-07+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\posabsorptionscatter15thMarYesSmear2Files.parquet07-04-2023 15-42-19+(160, 160, 80).txt"
+    file2 = r"SavedVoxelCubes\posscatterscatter15thMarYesSmear2Files.parquet07-04-2023 15-35-04+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 80
     voxel_length = 0.5  #cm
     plane_z = 20
+
+    graphxoffset = -40
+    graphyoffset = -40
+    graphzoffset = -20
+
+    offset = np.array([graphxoffset, graphyoffset, graphzoffset])
+
+    real_source_location = f'[0, 0, {-graphzoffset - 20}]'
+
+
     # This is a 2D array - need to convert it to the original
     load_original_arr = loaded_arr.reshape(loaded_arr.shape[0], loaded_arr.shape[1] // zs, zs)
 
@@ -161,8 +170,8 @@ if __name__ == '__main__':
         max_cluster_index = np.array(np.argwhere(cluster == np.max(cluster)))
         source_locations.loc[len(source_locations)] = [np.max(cluster),
                                                        np.count_nonzero(cluster),
-                                                       max_cluster_index * voxel_length,
-                                                       np.round(np.array(scipy.ndimage.center_of_mass(cluster)) * voxel_length, 1),
+                                                       max_cluster_index * voxel_length + offset,
+                                                       np.round(np.array(scipy.ndimage.center_of_mass(cluster)) * voxel_length + offset, 1),
                                                        variance(cluster) * voxel_length]
         clustered_voxel_cube += cluster
     pd.options.display.max_columns = 500
