@@ -123,7 +123,7 @@ def variance(matrix):
 if __name__ == '__main__':
     # get file data
     file1 = r"SavedVoxelCubes\posabsorptionscatter15thMarYesSmear2Files.parquet07-04-2023 15-42-19+(160, 160, 80).txt"
-    file2 = r"SavedVoxelCubes\posscatterscatter24thMar2SourceLong.parquet07-04-2023 20-54-41+(160, 160, 80).txt"
+    file2 = r"SavedVoxelCubes\posscatterscatter24thMar2SourceLong.parquet07-04-2023 20-06-17+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)*0
     loaded_arr2 = np.loadtxt(file2)
     zs = 80
