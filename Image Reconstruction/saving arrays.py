@@ -121,8 +121,8 @@ def variance(matrix):
 
 if __name__ == '__main__':
     # get file data
-    file1 = r"SavedVoxelCubes\posabsorptionscatter24thMar2SourceLong.parquet07-04-2023 21-23-29+(160, 160, 80).txt"
-    file2 = r"SavedVoxelCubes\posscatterscatter24thMar2SourceLong.parquet07-04-2023 21-36-40+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\posabsorptionscatter24thMar2SourceLongAttempt2.parquet07-04-2023 22-24-40+(160, 160, 80).txt"
+    file2 = r"SavedVoxelCubes\posscatterscatter24thMar2SourceLongAttempt2.parquet07-04-2023 22-12-46+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 80
@@ -131,7 +131,7 @@ if __name__ == '__main__':
 
     graphxoffset = -40
     graphyoffset = -40
-    graphzoffset = (0)-20
+    graphzoffset = (-24.1)-20
 
     offset = np.array([graphxoffset, graphyoffset, graphzoffset])
 
