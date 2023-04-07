@@ -12,7 +12,7 @@ def process_2d(matrix, dataframe):
     plane_yz = (matrix[int(np.shape(matrix)[0]/2 - 1), :, :])
     max_val = np.max([np.max(plane_xy), np.max(plane_yz)])
     min_val = np.min([np.min(plane_xy), np.min(plane_yz)])
-    print(np.unravel_index(np.argmax(matrix[:,:,:25]), np.shape(matrix[:,:,:25])))
+    print(np.unravel_index(np.argmax(matrix[:, :, :25]), np.shape(matrix[:, :, :25])))
 
     print(plane_yz[39, 17])
     print(plane_yz[39, 16])
@@ -21,9 +21,6 @@ def process_2d(matrix, dataframe):
     fig.suptitle(f"Actual location: {real_source_location}, Found location: "
                  f"{list(source_locations['Centre of mass'].iloc[0])} cm,\n"
                  f"Variance: {list(source_locations['Max Variance'].iloc[0])} cm")
-    '''tick_locations = np.arange(0, (matrix.shape[0] / voxel_length) + 20, 20)
-    plt.xticks(tick_locations, np.array(tick_locations * voxel_length, dtype=int))
-    plt.yticks(tick_locations, np.array(tick_locations * voxel_length, dtype=int))'''
     im1 = ax[0].imshow(plane_xy, vmin=min_val, vmax=max_val, cmap='rainbow')
     im2 = ax[1].imshow(plane_yz, vmin=min_val, vmax=max_val, cmap='rainbow')
     ax[0].set_xticks(np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])-1)
@@ -41,8 +38,10 @@ def process_2d(matrix, dataframe):
     timedate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
     plt.savefig(f'Plots/2d_reconstruction_save{timedate}.png', dpi=600)
     plt.show()
+
+
     '''plt.figure(dpi=600)
-    image1 = plt.imshow(plane, cmap='rainbow')
+    image1 = plt.imshow(plane_xy, cmap='rainbow')
     plt.title(
         f"Actual source location: {real_source_location}, Found source location{source_location}cm")
     tick_locations = np.arange(0, matrix.shape[0], 10)
