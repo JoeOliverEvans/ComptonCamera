@@ -12,7 +12,9 @@ import pandas as pd
 import warnings
 
 warnings.filterwarnings("ignore", message="divide by zero encountered in double_scalars")
+warnings.filterwarnings("ignore", message="divide by zero encountered in scalar divide")
 warnings.filterwarnings("ignore", message="invalid value encountered in arcsin")
+
 
 electron_mass = (constants.electron_mass * constants.c ** 2) / (constants.electron_volt * 10 ** 3)  # in keV
 
@@ -231,7 +233,7 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    file_name = 'posabsorptionscatter15thMarYesSmear2Files.parquet'
+    file_name = 'mcscatterscatter15thMarYesSmear2Files.parquet'
     df = pd.read_parquet(
         fr'{file_name}')
 
