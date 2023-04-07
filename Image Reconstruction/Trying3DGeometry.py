@@ -245,7 +245,7 @@ if __name__ == '__main__':
     z_plane = 20
     source_z = -24.1
 
-    for x in range(50):
+    for x in range(len(df)):
         row = df.iloc[[x]].to_numpy()[0]
         try:
             pairs.append(
