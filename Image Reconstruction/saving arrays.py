@@ -124,8 +124,8 @@ def variance(matrix):
 if __name__ == '__main__':
     # get file data
     real_source_location = '[40, 40, 20]'
-    file1 = r"SavedVoxelCubes\posabsorptionscatter15thMarYesSmear2Files.parquet07-04-2023 15-42-19+(160, 160, 80).txt"
-    file2 = r"SavedVoxelCubes\posscatterscatter15thMarYesSmear2Files.parquet07-04-2023 15-35-04+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\mcabsorptionscatter15thMarYesSmear2Files.parquet07-04-2023 16-17-38+(160, 160, 80).txt"
+    file2 = r"SavedVoxelCubes\mcscatterscatter15thMarYesSmear2Files.parquet07-04-2023 16-13-07+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 80
