@@ -231,7 +231,7 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    file_name = 'mcabsorptionscatter15thMarAllPoints.parquet'
+    file_name = 'posscatterscatter15thMarYesSmear2Files.parquet'
     df = pd.read_parquet(
         fr'{file_name}')
 
@@ -241,13 +241,13 @@ if __name__ == '__main__':
     print(df["scatter energy"].min())
 
     z_plane = 20
-    source_z = 20.2
+    source_z = 0
 
     for x in range(len(df)):
         row = df.iloc[[x]].to_numpy()[0]
         try:
             pairs.append(
-              DetectionPair(np.array(row[1]) + np.array([40, 40, z_plane-source_z]), np.array(row[3]) + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
+              DetectionPair(np.array(row[1])/10 + np.array([40, 40, z_plane-source_z]), np.array(row[3])/10 + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
         except ZeroDivisionError:
             pass
     #pairs.append(DetectionPair([50, 20, 30], [50, 20, 0], 662, 100, np.pi / 4))
