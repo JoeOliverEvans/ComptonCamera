@@ -253,7 +253,7 @@ if __name__ == '__main__':
         row = df.iloc[[x]].to_numpy()[0]
         try:
             pairs.append(
-              DetectionPair(np.array(row[1])/10 + np.array([40, 40, z_plane-source_z]), np.array(row[3])/10 + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
+              DetectionPair(np.array(row[1]) + np.array([40, 40, z_plane-source_z]), np.array(row[3]) + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
         except ZeroDivisionError:
             pass
 
