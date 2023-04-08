@@ -121,8 +121,8 @@ def variance(matrix):
 
 if __name__ == '__main__':
     # get file data
-    file1 = r"SavedVoxelCubes\mcabsorptionscatter15thMarNoSmear2Files.parquet07-04-2023 19-41-41+(160, 160, 80).txt"
-    file2 = r"SavedVoxelCubes\mcscatterscatter15thMarNoSmear2Files.parquet07-04-2023 19-32-15+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\posabsorptionscatter24thMar2Source30ApartX.parquet08-04-2023 14-12-49+(160, 160, 80).txt"
+    file2 = r"SavedVoxelCubes\posscatterscatter24thMar2Source30ApartX.parquet08-04-2023 14-06-34+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)
     zs = 80
@@ -131,7 +131,7 @@ if __name__ == '__main__':
 
     graphxoffset = -40
     graphyoffset = -40
-    graphzoffset = (0)-20
+    graphzoffset = (-24.1)-20
 
     offset = np.array([graphxoffset, graphyoffset, graphzoffset])
 
@@ -154,14 +154,14 @@ if __name__ == '__main__':
 
     voxel_cube = load_original_arr + load_original_arr2
 
-    voxel_cube = voxel_cube[:, :, :60]
+    voxel_cube = voxel_cube[:, :, :]
 
     print(np.max(voxel_cube))
 
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
     print(np.shape(voxel_cube))
-    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.65, 1, 0), 1)
+    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.75, 1, 0), 1)
     print("labels" + str(labels))
     clustered_voxel_cube = np.zeros(np.shape(voxel_cube))
 
