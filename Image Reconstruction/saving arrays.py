@@ -121,7 +121,7 @@ def variance(matrix):
 
 if __name__ == '__main__':
     # get file data
-    file1 = r"SavedVoxelCubes\posabsorptionscatter24th2SourcesFakeLikeExp.parquet10-04-2023 11-03-14+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\mc1_to3_absorptionscatter24th2SourcesFakeTake2.parquet10-04-2023 12-30-29+(160, 160, 80).txt"
     file2 = r"SavedVoxelCubes\experimentalabsorptionscatter24thMarTake3.parquet08-04-2023 21-09-46+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)*0
