@@ -121,7 +121,7 @@ def variance(matrix):
 
 if __name__ == '__main__':
     # get file data
-    file1 = r"SavedVoxelCubes\posabsorptionscatter24th2SourcesFakeTest.parquet09-04-2023 20-15-42+(160, 160, 80).txt"
+    file1 = r"SavedVoxelCubes\mcabsorptionscatter24thMar2SourceFake.parquet09-04-2023 22-45-39+(160, 160, 80).txt"
     file2 = r"SavedVoxelCubes\experimentalabsorptionscatter24thMarTake3.parquet08-04-2023 21-09-46+(160, 160, 80).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)*0
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
     print(np.shape(voxel_cube))
-    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.9, 1, 0), 1)
+    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.75, 1, 0), 1)
     print("labels" + str(labels))
     clustered_voxel_cube = np.zeros(np.shape(voxel_cube))
 
