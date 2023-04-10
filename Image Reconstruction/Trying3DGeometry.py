@@ -205,7 +205,7 @@ def calculate_voxel_cone_cube(arg):
 
 
 def save_matrix(voxelcube):
-    arr_reshaped = voxelcube.reshape(voxelcube.shape[0], -1)
+    arr_reshaped = np.array(voxelcube.reshape(voxelcube.shape[0], -1), dtype=int)
 
     # saving array
     timeanddate = datetime.now().strftime("%d/%m/%Y %H:%M:%S").replace('/', ':').replace(':', '-')
