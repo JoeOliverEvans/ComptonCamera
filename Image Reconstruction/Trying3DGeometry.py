@@ -233,8 +233,8 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    file_name = 'mcabsorptionscatter16Detectors8-15Take2.parquet'
-    file_name2 = 'mcscatterscatter16Detectors8-15Take2.parquet'
+    file_name = 'mcabsorptionscatter16Detectors0-7Like20thTake2.parquet'
+    file_name2 = 'mcscatterscatter16Detectors0-7Like20thTake2.parquet'
     df = pd.read_parquet(
         fr'{file_name}')
 
@@ -247,7 +247,7 @@ if __name__ == '__main__':
     print(df["scatter energy"].min())
 
     z_plane = 40
-    source_z = 0
+    source_z = -20
 
     for x in range(len(df)):
         row = df.iloc[[x]].to_numpy()[0]
