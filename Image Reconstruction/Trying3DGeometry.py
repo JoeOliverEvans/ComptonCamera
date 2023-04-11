@@ -150,12 +150,12 @@ def calculate_cone_polars(imaging_area, pair_of_detections, voxel_length):
         if magnitude > R_max:
             R_max = magnitude
     R_min = 0
-    if 0 <= pair_of_detections.scatterPosition[0] < imaging_area[0] and 0 <= pair_of_detections.scatterPosition[1] < \
+    '''if 0 <= pair_of_detections.scatterPosition[0] < imaging_area[0] and 0 <= pair_of_detections.scatterPosition[1] < \
             imaging_area[1] \
             and 0 <= pair_of_detections.scatterPosition[2] < imaging_area[2]:
         R_min = 0
     else:
-        R_min = abs(pair_of_detections.scatterPosition[2] - imaging_area[2])
+        R_min = abs(pair_of_detections.scatterPosition[2] - imaging_area[2])'''
     R = np.arange(R_min, R_max, voxel_length / 2)
     points = []  # Creates arroy with the right shape
     weight = 1  # will be changed for Amber's uncertainty
@@ -253,8 +253,8 @@ if __name__ == '__main__':
         row = df.iloc[[x]].to_numpy()[0]
         try:
             pairs.append(
-              DetectionPair(np.array(row[1])/10 + np.array([40, 40, z_plane-source_z]),
-                            np.array(row[3])/10 + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
+              DetectionPair(np.array(row[1])/10 + np.array([20, 20, z_plane-source_z]),
+                            np.array(row[3])/10 + np.array([20, 20, z_plane-source_z]), 662, row[0] * 1000))
         except ZeroDivisionError:
             pass
 
@@ -265,8 +265,8 @@ if __name__ == '__main__':
         row = df.iloc[[x]].to_numpy()[0]
         try:
             pairs.append(
-                DetectionPair(np.array(row[1])/10 + np.array([40, 40, z_plane - source_z]),
-                              np.array(row[3])/10 + np.array([40, 40, z_plane - source_z]), 662, row[0] * 1000))
+                DetectionPair(np.array(row[1])/10 + np.array([20, 20, z_plane - source_z]),
+                              np.array(row[3])/10 + np.array([20, 20, z_plane - source_z]), 662, row[0] * 1000))
         except ZeroDivisionError:
             pass
     #pairs.append(DetectionPair([50, 20, 30], [50, 20, 0], 662, 100, np.pi / 4))
