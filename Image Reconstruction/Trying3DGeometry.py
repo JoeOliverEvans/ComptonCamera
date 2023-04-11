@@ -247,7 +247,7 @@ if __name__ == '__main__':
     print(df["scatter energy"].min())
 
     z_plane = 40
-    source_z = -20
+    source_z = 0
 
     for x in range(len(df)):
         row = df.iloc[[x]].to_numpy()[0]

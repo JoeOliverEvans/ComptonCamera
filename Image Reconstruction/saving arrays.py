@@ -9,7 +9,7 @@ import pandas as pd
 def process_2d(matrix, dataframe):
     matrix = matrix[:, ::-1, :]     # fix y direction for matplotlib
     plane_xy = np.transpose(matrix[:, :, int(plane_z / voxel_length)])     # fix x direction for matplotlib
-    plane_yz = (matrix[int(np.shape(matrix)[0]/2 - 1), :, 40:120])
+    plane_yz = (matrix[int(np.shape(matrix)[0]/2 - 1), :, :])
     max_val = np.max([np.max(plane_xy), np.max(plane_yz)])
     min_val = np.min([np.min(plane_xy), np.min(plane_yz)])
     print(np.unravel_index(np.argmax(matrix[:, :, :25]), np.shape(matrix[:, :, :25])))
@@ -17,18 +17,18 @@ def process_2d(matrix, dataframe):
     print(plane_yz[39, 17])
     print(plane_yz[39, 16])
     print(np.unravel_index(np.argmax(plane_xy), np.shape(plane_xy)))
-    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(7.2, 3.8), gridspec_kw={'width_ratios': [1, 1]}, sharey=True)
+    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(7.2, 4.2), gridspec_kw={'width_ratios': [2, 1]}, sharey=True)
     fig.suptitle(f"Actual location: {real_source_location}, Found location: "
                  f"{list(source_locations['Centre of mass'].iloc[0])} cm,\n"
                  f"Variance: {list(source_locations['Max Variance'].iloc[0])} cm")
     im1 = ax[0].imshow(plane_xy, vmin=min_val, vmax=max_val, cmap='rainbow')
     im2 = ax[1].imshow(plane_yz, vmin=min_val, vmax=max_val, cmap='rainbow')
     ax[0].set_xticks(np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])-1)
-    ax[0].set_xticklabels(np.array([0, 10, 20, 30, 40, 50, 60, 70, 80]) + graphxoffset, rotation=45)
+    ax[0].set_xticklabels(np.array([0, 10, 20, 30, 40, 50, 60, 70, 80]) + graphxoffset)
     ax[0].set_yticks(np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])-1)
     ax[0].set_yticklabels(np.array([0, 10, 20, 30, 40, 50, 60, 70, 80][::-1]) + graphyoffset)
     ax[1].set_xticks(np.array([0, 20, 40, 60, 80])-1)
-    ax[1].set_xticklabels(np.round(np.array([0, 10, 20, 30, 40]) + graphzoffset, 1), rotation=45)
+    ax[1].set_xticklabels(np.round(np.array([0, 10, 20, 30, 40]) + graphzoffset, 1))
     ax[0].set_ylabel('y (cm)')
     ax[0].set_xlabel('x (cm)')
     ax[1].set_xlabel('z (cm)')
@@ -121,17 +121,17 @@ def variance(matrix):
 
 if __name__ == '__main__':
     # get file data
-    file1 = r"SavedVoxelCubes\mcabsorptionscatter16Detectors0-7Take2.parquet11-04-2023 16-30-48+(160, 160, 160).txt"
-    file2 = r"SavedVoxelCubes\posabsorptionscatter16Sets8-15.parquet11-04-2023 13-08-42+(160, 160, 160).txt"
+    file1 = r"SavedVoxelCubes\mcabsorptionscatter16Detectors0-7Like20thTake2.parquet11-04-2023 22-50-09+(160, 160, 160).txt"
+    file2 = r"SavedVoxelCubes\mcabsorptionscatter16Detectors8-15Like20th.parquet11-04-2023 23-17-39+(160, 160, 160).txt"
     loaded_arr = np.loadtxt(file1)
     loaded_arr2 = np.loadtxt(file2)*0
     zs = 160
     voxel_length = 0.5  #cm
-    plane_z = 40
+    plane_z = 20
 
     graphxoffset = -40
     graphyoffset = -40
-    graphzoffset = (-24.1)-20
+    graphzoffset = (-20)-20
 
     offset = np.array([graphxoffset, graphyoffset, graphzoffset])
 
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     source_location = np.array(np.unravel_index(np.argmax(voxel_cube), voxel_cube.shape),
                                dtype=np.float64) * voxel_length
     print(np.shape(voxel_cube))
-    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.75, 1, 0), 1)
+    cluster_locations, labels = clustering(np.where(voxel_cube >= np.max(voxel_cube) * 0.45, 1, 0), 1)
     print("labels" + str(labels))
     clustered_voxel_cube = np.zeros(np.shape(voxel_cube))
 
