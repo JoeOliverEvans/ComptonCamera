@@ -9,7 +9,7 @@ import pandas as pd
 def process_2d(matrix, dataframe):
     matrix = matrix[:, ::-1, :]     # fix y direction for matplotlib
     plane_xy = np.transpose(matrix[:, :, int(plane_z / voxel_length)])     # fix x direction for matplotlib
-    plane_yz = (matrix[int(np.shape(matrix)[0]/2 - 1), :, :])
+    plane_yz = (matrix[int(np.shape(matrix)[0]/2 - 1), :, 40:120])
     max_val = np.max([np.max(plane_xy), np.max(plane_yz)])
     min_val = np.min([np.min(plane_xy), np.min(plane_yz)])
     print(np.unravel_index(np.argmax(matrix[:, :, :25]), np.shape(matrix[:, :, :25])))
@@ -27,8 +27,8 @@ def process_2d(matrix, dataframe):
     ax[0].set_xticklabels(np.array([0, 10, 20, 30, 40, 50, 60, 70, 80]) + graphxoffset, rotation=45)
     ax[0].set_yticks(np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])-1)
     ax[0].set_yticklabels(np.array([0, 10, 20, 30, 40, 50, 60, 70, 80][::-1]) + graphyoffset)
-    ax[1].set_xticks(np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])-1)
-    ax[1].set_xticklabels(np.round(np.array([0, 10, 20, 30, 40, 50, 60, 70, 80]) + graphzoffset, 1), rotation=45)
+    ax[1].set_xticks(np.array([0, 20, 40, 60, 80])-1)
+    ax[1].set_xticklabels(np.round(np.array([0, 10, 20, 30, 40]) + graphzoffset, 1), rotation=45)
     ax[0].set_ylabel('y (cm)')
     ax[0].set_xlabel('x (cm)')
     ax[1].set_xlabel('z (cm)')
