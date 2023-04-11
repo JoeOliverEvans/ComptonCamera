@@ -233,8 +233,8 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    file_name = 'mc1_to3_absorptionscatter24th2SourcesFakeTake3.parquet'
-    file_name2 = 'mc1_to3_scatterscatter24th2SourcesFakeTake3.parquet'
+    file_name = 'posabsorptionscatter16Sets0-7.parquet'
+    file_name2 = 'posscatterscatter16Sets0-7.parquet'
     df = pd.read_parquet(
         fr'{file_name}')
 
@@ -253,8 +253,8 @@ if __name__ == '__main__':
         row = df.iloc[[x]].to_numpy()[0]
         try:
             pairs.append(
-              DetectionPair(np.array(row[1]) + np.array([40, 40, z_plane-source_z]),
-                            np.array(row[3]) + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
+              DetectionPair(np.array(row[1])/10 + np.array([40, 40, z_plane-source_z]),
+                            np.array(row[3])/10 + np.array([40, 40, z_plane-source_z]), 662, row[0] * 1000))
         except ZeroDivisionError:
             pass
 
@@ -265,8 +265,8 @@ if __name__ == '__main__':
         row = df.iloc[[x]].to_numpy()[0]
         try:
             pairs.append(
-                DetectionPair(np.array(row[1]) + np.array([40, 40, z_plane - source_z]),
-                              np.array(row[3]) + np.array([40, 40, z_plane - source_z]), 662, row[0] * 1000))
+                DetectionPair(np.array(row[1])/10 + np.array([40, 40, z_plane - source_z]),
+                              np.array(row[3])/10 + np.array([40, 40, z_plane - source_z]), 662, row[0] * 1000))
         except ZeroDivisionError:
             pass
     #pairs.append(DetectionPair([50, 20, 30], [50, 20, 0], 662, 100, np.pi / 4))
@@ -280,7 +280,7 @@ if __name__ == '__main__':
     print(pairs[0].scatterAngle)
     '''pairs.append(DetectionPair([50, 10, 10], [50, 10, 0], 662, 500, np.arctan(1/1)))'''
     """setup the imaging area"""
-    imaging_area = np.array([80, 80, 40])
+    imaging_area = np.array([40, 40, 40])
     voxel_length = 0.5 * 10 ** (0)  # units matching cub_size
     voxels_per_side = np.array(imaging_area / voxel_length, dtype=int)
     voxel_cube = np.zeros(voxels_per_side, dtype=int)
