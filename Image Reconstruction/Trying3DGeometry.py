@@ -233,8 +233,8 @@ def save_matrix(voxelcube):
 if __name__ == '__main__':
     """reading in results from csv"""
     pairs = []
-    file_name = 'posabsorptionscatterExtendedSourceTake2.parquet'
-    file_name2 = 'posscatterscatterExtendedSourceTake2.parquet'
+    file_name = 'Final Data/posabsorptionscatterExtendedSourceTake2.parquet'
+    file_name2 = 'Final Data/posscatterscatterExtendedSourceTake2.parquet'
     df = pd.read_parquet(
         fr'{file_name}')
 
